@@ -6,12 +6,11 @@ import { supabase } from './supabaseClient'
 // אז embed ישיר ממילא ייכשל). שם לקוח על משימה נפתר בצד קליינט לפי מיפוי id, לא embed.
 
 // ===== profiles =====
+// דרך profiles_view (010), לא מ-profiles הגולמית: email ו-is_disabled
+// ממוסכים שם ל-null למי שאינו הנהלה, אותו דפוס בדיוק כמו clients_view.
 
 export async function listProfiles() {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, full_name, permission_level, roles, avatar_url')
-    .order('full_name')
+  const { data, error } = await supabase.from('profiles_view').select('*').order('full_name')
   if (error) throw error
   return data
 }
@@ -23,6 +22,28 @@ export async function listProfiles() {
 export async function createUser({ email, password, fullName, permissionLevel, roles }) {
   const { data, error } = await supabase.functions.invoke('create-user', {
     body: { email, password, full_name: fullName, permission_level: permissionLevel, roles },
+  })
+  if (error) {
+    const message = (await error.context?.json?.().catch(() => null))?.error
+    throw new Error(message || error.message)
+  }
+  return data
+}
+
+// עריכת שם/דרג הרשאה/תפקידים למשתמש קיים: UPDATE ישיר, לא Edge Function.
+// profiles_update_by_admin (004) כבר מגביל את זה להנהלה בלבד ב-RLS,
+// אין כאן שום דבר חדש שדורש service_role. בלי .select(): profiles כן
+// פתוחה ל-SELECT (לא כמו clients), אבל שומרים על אותו דפוס בכל הקוד.
+export async function updateProfile(userId, patch) {
+  const { error } = await supabase.from('profiles').update(patch).eq('id', userId)
+  if (error) throw error
+}
+
+// ביטול/הפעלה מחדש עוברים רק דרך ה-Edge Function, מאותה סיבה כמו יצירה:
+// service_role נדרש כדי לגעת ב-auth.users, ולעולם לא בפרונט.
+export async function setUserDisabled(userId, disabled) {
+  const { data, error } = await supabase.functions.invoke('disable-user', {
+    body: { user_id: userId, disabled },
   })
   if (error) {
     const message = (await error.context?.json?.().catch(() => null))?.error

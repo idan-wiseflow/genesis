@@ -483,6 +483,15 @@ a.meta-text:hover {
   gap: 8px;
   font-weight: 700;
 }
+.user-row-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.user-row-actions .btn-ghost {
+  padding: 5px 10px;
+  font-size: 12px;
+}
 
 .profile-avatar-row {
   display: flex;
