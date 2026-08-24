@@ -255,7 +255,7 @@ export default function TaskDetail() {
                     disabled={!forward || statusBusy}
                     onClick={() => moveStatus(forward)}
                   >
-                    שלב הבא →
+                    ← שלב הבא
                   </button>
                   <button
                     type="button"
@@ -263,7 +263,7 @@ export default function TaskDetail() {
                     disabled={!back || statusBusy}
                     onClick={() => moveStatus(back)}
                   >
-                    ← שלב קודם
+                    שלב קודם →
                   </button>
                 </div>
               )}
