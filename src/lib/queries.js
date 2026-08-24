@@ -30,16 +30,23 @@ export async function getClient(clientId) {
   return data
 }
 
+// כתיבה בלי .select() בכוונה: authenticated אין לו SELECT על clients הגולמית
+// (revoke מפורש ב-004, כדי לאלץ קריאה רק דרך clients_view). INSERT/UPDATE עם
+// RETURNING (מה ש-.select() אחרי כתיבה מייצר) דורש SELECT על הטבלה גם אם
+// הכתיבה עצמה מותרת, ונופל על "permission denied for table clients".
+// השורה נקראת בחזרה דרך getClient (clients_view), לא RETURNING.
+
 export async function createClient(payload) {
-  const { data, error } = await supabase.from('clients').insert(payload).select().single()
+  const id = crypto.randomUUID()
+  const { error } = await supabase.from('clients').insert({ id, ...payload })
   if (error) throw error
-  return data
+  return getClient(id)
 }
 
 export async function updateClient(clientId, patch) {
-  const { data, error } = await supabase.from('clients').update(patch).eq('id', clientId).select().single()
+  const { error } = await supabase.from('clients').update(patch).eq('id', clientId)
   if (error) throw error
-  return data
+  return getClient(clientId)
 }
 
 // ===== tags =====
