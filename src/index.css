@@ -44,8 +44,33 @@
   color-scheme: light;
 }
 
+/* עקיפה ידנית דרך מסך ההגדרות (src/lib/theme.js, data-theme על ה-html).
+   data-theme="dark" מנצח תמיד. data-theme="light" מנצח גם כש-OS במצב כהה,
+   ולכן ה-media query למטה מוציא אותו במפורש עם :not(). בלי data-theme בכלל,
+   prefers-color-scheme קובע כרגיל. */
+
+:root[data-theme='dark'] {
+  --bg: #09090b;
+  --card: #0d0d10;
+  --muted: #18181b;
+  --muted-fg: #a1a1aa;
+  --fg: #fafafa;
+  --border: #27272a;
+  --success: #4fd390;
+  --success-bg: #10241a;
+  --info: #5fc9e6;
+  --info-bg: #0f2530;
+  --wait: #e6b559;
+  --wait-bg: #2a2109;
+  --urgent: #ef8a71;
+  --urgent-bg: #2c1712;
+  --sidebar: #0f1011;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 24px -10px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #09090b;
     --card: #0d0d10;
     --muted: #18181b;
@@ -112,17 +137,20 @@ h3 {
   flex-direction: column;
   gap: 26px;
 }
-.sidebar-word {
-  font-weight: 900;
-  font-size: 17px;
-  letter-spacing: -0.01em;
-  color: #fff;
+.sidebar-brand {
   padding: 0 8px;
 }
-.sidebar-word span {
+.sidebar-logo {
+  height: 22px;
+  width: auto;
+  display: block;
   color: var(--accent);
-  margin: 0 6px;
-  font-weight: 400;
+}
+.sidebar-word {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sidebar-text-dim);
+  margin-top: 6px;
 }
 .nav {
   display: flex;
@@ -313,15 +341,17 @@ h3 {
   flex-direction: column;
   gap: 14px;
 }
-.login-word {
-  font-weight: 900;
-  font-size: 18px;
-  margin-bottom: 6px;
+.login-logo {
+  height: 26px;
+  width: auto;
+  display: block;
+  color: var(--fg);
 }
-.login-word span {
-  color: var(--accent);
-  margin: 0 6px;
-  font-weight: 400;
+.login-word {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-fg);
+  margin: 6px 0 6px;
 }
 .login-card label {
   display: flex;
@@ -405,6 +435,10 @@ a.meta-text:hover {
 
 .list-toolbar {
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .chip-toggle {
   border: 1px solid var(--border);
@@ -422,6 +456,100 @@ a.meta-text:hover {
   border-color: var(--fg);
 }
 
+.theme-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.search-input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  background: var(--card);
+  color: var(--fg);
+  width: min(240px, 100%);
+}
+.search-input:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 1px;
+}
+
+.columns-picker {
+  position: relative;
+}
+.columns-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 8px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 150px;
+}
+.columns-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.columns-menu-item:hover {
+  background: var(--muted);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th {
+  text-align: right;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted-fg);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+.data-row {
+  cursor: pointer;
+}
+.data-row:hover {
+  background: var(--muted);
+}
+.data-table td a {
+  font-weight: 700;
+  text-decoration: none;
+}
+.data-table td a:hover {
+  text-decoration: underline;
+}
+.muted-cell {
+  color: var(--muted-fg);
+}
+
 .empty-state {
   padding: 32px 0;
   text-align: center;
@@ -429,15 +557,13 @@ a.meta-text:hover {
   font-size: 13.5px;
 }
 
-.task-list,
-.client-list {
+.task-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.task-row,
-.client-row {
+.task-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -449,20 +575,17 @@ a.meta-text:hover {
   text-decoration: none;
   color: inherit;
 }
-.task-row:hover,
-.client-row:hover {
+.task-row:hover {
   border-color: var(--muted-fg);
 }
 
-.task-row-main,
-.client-row-main {
+.task-row-main {
   display: flex;
   flex-direction: column;
   gap: 3px;
   min-width: 0;
 }
-.task-row-title,
-.client-row-name {
+.task-row-title {
   font-size: 14px;
   font-weight: 700;
 }
@@ -480,18 +603,6 @@ a.meta-text:hover {
   font-size: 12px;
   color: var(--muted-fg);
   font-variant-numeric: tabular-nums;
-}
-
-.client-row-roles {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 2px;
-}
-.client-row-financial {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
 }
 
 /* ===== מודל ===== */

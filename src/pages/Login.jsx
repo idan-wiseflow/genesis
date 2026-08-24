@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import Logo from '../components/Logo'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -19,9 +20,8 @@ export default function Login() {
   return (
     <div className="login-screen">
       <form className="login-card" onSubmit={handleSubmit}>
-        <div className="login-word">
-          ג'נסיס<span>·</span>לוח משימות
-        </div>
+        <Logo className="login-logo" />
+        <div className="login-word">לוח משימות</div>
         <label>
           אימייל
           <input

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CLIENT_ROLE_FIELDS } from '../lib/clientRoles'
 
 const EMPTY = {
   name: '',
@@ -10,14 +11,6 @@ const EMPTY = {
   retainer_amount: '',
   media_amount: '',
 }
-
-const ROLE_FIELDS = [
-  { field: 'project_manager_id', label: 'מנהל פרויקט' },
-  { field: 'campaigner_id', label: 'קמפיינר' },
-  { field: 'social_id', label: 'Social' },
-  { field: 'seo_id', label: 'SEO' },
-  { field: 'studio_id', label: 'סטודיו' },
-]
 
 // משמש גם ליצירה (בתוך Modal) וגם לעריכה inline ב-ClientDetail.
 // canEditProjectManager: רק הנהלה, אוכף בטריגר clients_role_guard (002) - כאן רק disabled מוקדם.
@@ -79,7 +72,7 @@ export default function ClientForm({
       </label>
 
       <div className="form-row">
-        {ROLE_FIELDS.map(({ field, label }) => {
+        {CLIENT_ROLE_FIELDS.map(({ field, label }) => {
           const disabled = field === 'project_manager_id' && !canEditProjectManager
           return (
             <label key={field}>

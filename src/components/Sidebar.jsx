@@ -1,10 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Logo from './Logo'
 
 const NAV_ITEMS = [
   { to: '/', label: 'בית', icon: '🏠', end: true },
   { to: '/tasks', label: 'משימות', icon: '✅' },
   { to: '/clients', label: 'לקוחות', icon: '🗂️' },
+  { to: '/settings', label: 'הגדרות', icon: '⚙️' },
 ]
 
 export default function Sidebar() {
@@ -12,8 +14,9 @@ export default function Sidebar() {
 
   return (
     <nav className="sidebar">
-      <div className="sidebar-word">
-        ג'נסיס<span>·</span>לוח משימות
+      <div className="sidebar-brand">
+        <Logo className="sidebar-logo" />
+        <div className="sidebar-word">לוח משימות</div>
       </div>
       <div className="nav">
         {NAV_ITEMS.map((item) => (

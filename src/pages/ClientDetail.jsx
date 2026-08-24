@@ -4,17 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { getClient, listClientTasks, updateClient } from '../lib/queries'
 import { canEditProjectManager, canManageClients } from '../lib/permissions'
 import { formatCurrency, initials } from '../lib/format'
+import { CLIENT_ROLE_FIELDS } from '../lib/clientRoles'
 import { useProfilesById } from '../hooks/useProfilesById'
 import TaskRow from '../components/TaskRow'
 import ClientForm from '../components/ClientForm'
-
-const ROLE_FIELDS = [
-  { field: 'project_manager_id', label: 'מנהל פרויקט' },
-  { field: 'campaigner_id', label: 'קמפיינר' },
-  { field: 'social_id', label: 'Social' },
-  { field: 'seo_id', label: 'SEO' },
-  { field: 'studio_id', label: 'סטודיו' },
-]
 
 export default function ClientDetail() {
   const { clientId } = useParams()
@@ -101,7 +94,7 @@ export default function ClientDetail() {
             <div className="section">
               <h3>צוות מוקצה</h3>
               <div className="field-grid">
-                {ROLE_FIELDS.map(({ field, label }) => {
+                {CLIENT_ROLE_FIELDS.map(({ field, label }) => {
                   const name = client[field] ? profilesById[client[field]]?.full_name : null
                   return (
                     <div className="field" key={field}>
