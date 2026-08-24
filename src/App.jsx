@@ -33,7 +33,7 @@ function AppShell() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/genesis">
       <AuthProvider>
         <AppShell />
       </AuthProvider>
