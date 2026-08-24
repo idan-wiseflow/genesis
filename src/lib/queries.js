@@ -57,13 +57,13 @@ export async function listTags() {
   return data
 }
 
+// בלי RETURNING, מאותה סיבה כמו clients/tasks למעלה (בדיקה חיה, 24.08.2026).
 export async function createTag(name, createdBy) {
-  const { data, error } = await supabase
-    .from('tags')
-    .insert({ name, created_by: createdBy })
-    .select()
-    .single()
+  const id = crypto.randomUUID()
+  const { error } = await supabase.from('tags').insert({ id, name, created_by: createdBy })
   if (error) throw error
+  const { data, error: readError } = await supabase.from('tags').select('*').eq('id', id).single()
+  if (readError) throw readError
   return data
 }
 
@@ -105,16 +105,23 @@ export async function getTask(taskId) {
   return data
 }
 
+// כתיבה בלי .select() בכוונה: RETURNING אחרי INSERT/UPDATE דורש שהשורה תעבור
+// גם את בדיקת tasks_select (can_view_task) באותה נשימה עם WITH CHECK של הכתיבה,
+// ונופל על 403 "row-level security policy" גם כשההרשאה בפועל תקינה (נצפה בדיקה
+// חיה 24.08.2026: הנהלה, policy תקין, ועדיין 403 על POST עם ?select=*).
+// אותו דפוס בדיוק כמו ב-clients (ראו למעלה), השורה נקראת בחזרה דרך getTask.
+
 export async function createTask(payload) {
-  const { data, error } = await supabase.from('tasks').insert(payload).select().single()
+  const id = crypto.randomUUID()
+  const { error } = await supabase.from('tasks').insert({ id, ...payload })
   if (error) throw error
-  return data
+  return getTask(id)
 }
 
 export async function updateTask(taskId, patch) {
-  const { data, error } = await supabase.from('tasks').update(patch).eq('id', taskId).select().single()
+  const { error } = await supabase.from('tasks').update(patch).eq('id', taskId)
   if (error) throw error
-  return data
+  return getTask(taskId)
 }
 
 // ===== task_tags =====
@@ -147,12 +154,12 @@ export async function listTaskComments(taskId) {
   return data
 }
 
+// בלי RETURNING, מאותה סיבה כמו clients/tasks/tags למעלה (בדיקה חיה, 24.08.2026).
 export async function addTaskComment(taskId, userId, text) {
-  const { data, error } = await supabase
-    .from('task_comments')
-    .insert({ task_id: taskId, user_id: userId, text })
-    .select()
-    .single()
+  const id = crypto.randomUUID()
+  const { error } = await supabase.from('task_comments').insert({ id, task_id: taskId, user_id: userId, text })
   if (error) throw error
+  const { data, error: readError } = await supabase.from('task_comments').select('*').eq('id', id).single()
+  if (readError) throw readError
   return data
 }
