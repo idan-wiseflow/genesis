@@ -1,16 +1,23 @@
-# React + Vite
+# ג'נסיס · לוח משימות
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+מערכת ניהול משימות ולקוחות ללקוח ג'נסיס. פאזה 1: שלד, ישויות בסיס, הרשאות, CRUD ידני.
 
-Currently, two official plugins are available:
+## הרצה מקומית
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```
+npm install
+npm run dev
+```
 
-## React Compiler
+דורש `.env.local` עם `VITE_SUPABASE_URL` ו-`VITE_SUPABASE_ANON_KEY` (ראה `.env.example`).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## דיפלוי
 
-## Expanding the Oxlint configuration
+push ל-`main` מריץ `.github/workflows/deploy.yml`: בילד + rsync ל-Contabo
+(`/www/wwwroot/files.wiseflow.co.il/genesis/`).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## תיעוד מלא
+
+- ארכיטקטורה והחלטות טכניות: `B-brain/04-clients/genesis/tech-decisions.md` בריפו wiseflow-system
+- מיגרציות ה-DB: `B-brain/04-clients/genesis/_process/migrations/`
+- Edge Function ליצירת משתמשים: `B-brain/04-clients/genesis/_process/edge-functions/create-user/`
