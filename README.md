@@ -21,3 +21,4 @@ push ל-`main` מריץ `.github/workflows/deploy.yml`: בילד + rsync ל-Cont
 - ארכיטקטורה והחלטות טכניות: `B-brain/04-clients/genesis/tech-decisions.md` בריפו wiseflow-system
 - מיגרציות ה-DB: `B-brain/04-clients/genesis/_process/migrations/`
 - Edge Function ליצירת משתמשים: `B-brain/04-clients/genesis/_process/edge-functions/create-user/`
+
