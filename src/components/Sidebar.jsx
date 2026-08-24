@@ -6,7 +6,6 @@ const NAV_ITEMS = [
   { to: '/', label: 'בית', icon: '🏠', end: true },
   { to: '/tasks', label: 'משימות', icon: '✅' },
   { to: '/clients', label: 'לקוחות', icon: '🗂️' },
-  { to: '/settings', label: 'הגדרות', icon: '⚙️' },
 ]
 
 export default function Sidebar() {
@@ -31,10 +30,16 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </div>
-      <button className="sidebar-user" onClick={signOut} type="button">
-        <span className="avatar">{(profile?.full_name || '?').slice(0, 2)}</span>
-        <span>{profile?.full_name ?? 'טוען...'}</span>
-      </button>
+      <div className="sidebar-bottom">
+        <NavLink to="/settings" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
+          <span className="ic">⚙️</span>
+          <span>הגדרות</span>
+        </NavLink>
+        <button className="sidebar-user" onClick={signOut} type="button">
+          <span className="avatar">{(profile?.full_name || '?').slice(0, 2)}</span>
+          <span>{profile?.full_name ?? 'טוען...'}</span>
+        </button>
+      </div>
     </nav>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { createTask, listTasks } from '../lib/queries'
 import { canCreateTasks } from '../lib/permissions'
+import { groupByDateBucket } from '../lib/dateBuckets'
 import { useClientsById } from '../hooks/useClientsById'
 import { useProfilesById } from '../hooks/useProfilesById'
 import TaskRow from '../components/TaskRow'
@@ -40,6 +41,7 @@ export default function Tasks() {
   }
 
   const visibleTasks = tasks?.filter((t) => showAll || t.status !== 'פורסם')
+  const grouped = visibleTasks ? groupByDateBucket(visibleTasks) : []
 
   return (
     <section className="screen">
@@ -73,18 +75,21 @@ export default function Tasks() {
 
       {visibleTasks?.length === 0 && <div className="empty-state">אין משימות להצגה</div>}
 
-      {visibleTasks && visibleTasks.length > 0 && (
-        <div className="task-list">
-          {visibleTasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              clientName={task.client_id ? clientsById[task.client_id]?.name : null}
-              assigneeName={task.assigned_to ? profilesById[task.assigned_to]?.full_name : null}
-            />
-          ))}
+      {grouped.map(({ bucket, tasks: bucketTasks }) => (
+        <div className="task-group" key={bucket}>
+          <h3 className="task-group-title">{bucket}</h3>
+          <div className="task-list">
+            {bucketTasks.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                clientName={task.client_id ? clientsById[task.client_id]?.name : null}
+                assigneeName={task.assigned_to ? profilesById[task.assigned_to]?.full_name : null}
+              />
+            ))}
+          </div>
         </div>
-      )}
+      ))}
 
       {creating && (
         <Modal title="משימה חדשה" onClose={() => setCreating(false)}>

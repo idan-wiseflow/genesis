@@ -181,13 +181,19 @@ h3 {
   background: rgba(243, 192, 82, 0.14);
   color: var(--accent);
 }
-.sidebar-user {
+.sidebar-bottom {
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar-user {
   display: flex;
   align-items: center;
   gap: 9px;
   padding: 9px 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 10px;
   padding-top: 14px;
   font-size: 12.5px;
   color: var(--sidebar-text);
@@ -557,6 +563,29 @@ a.meta-text:hover {
   font-size: 13.5px;
 }
 
+.home-more-link {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-fg);
+  text-decoration: none;
+}
+.home-more-link:hover {
+  color: var(--fg);
+}
+
+.task-group {
+  margin-bottom: 22px;
+}
+.task-group-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted-fg);
+  margin: 0 0 10px;
+  text-transform: none;
+}
+
 .task-list {
   display: flex;
   flex-direction: column;
@@ -919,6 +948,75 @@ a.meta-text:hover {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* ===== עריכה בלחיצה על שדה (במקום כפתור "עריכה" גלובלי) ===== */
+
+.clickable {
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.1s;
+}
+.clickable:hover {
+  background: var(--muted);
+}
+h1.clickable:hover {
+  box-shadow: 0 0 0 6px var(--muted);
+  background: var(--muted);
+}
+.desc.clickable {
+  padding: 4px 6px;
+  margin: -4px -6px;
+}
+
+.field-editable {
+  display: block;
+  width: 100%;
+  text-align: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.field-editable:hover .k,
+.field-editable:hover .v {
+  color: var(--fg);
+}
+
+.inline-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.inline-editor input,
+.inline-editor select,
+.inline-editor textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  background: var(--card);
+  color: var(--fg);
+  width: 100%;
+}
+.inline-editor input:focus-visible,
+.inline-editor select:focus-visible,
+.inline-editor textarea:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 1px;
+}
+.inline-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.inline-editor-actions .btn,
+.inline-editor-actions .btn-ghost {
+  padding: 5px 12px;
+  font-size: 12.5px;
 }
 
 .tag-badge {
