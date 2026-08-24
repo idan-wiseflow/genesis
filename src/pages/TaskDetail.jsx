@@ -150,6 +150,7 @@ export default function TaskDetail() {
   const [files, setFiles] = useState([])
   const [fileError, setFileError] = useState('')
   const [uploadBusy, setUploadBusy] = useState(false)
+  const [detailTab, setDetailTab] = useState('comments')
 
   useEffect(() => {
     let active = true
@@ -408,50 +409,70 @@ export default function TaskDetail() {
             </div>
 
             <div className="section">
-              <h3>היסטוריה</h3>
-              <div className="history-list">
-                {history.map((h) => (
-                  <div className="history-row" key={h.id}>
-                    <span className="meta-text">
-                      {h.old_status ? `${h.old_status} ← ${h.new_status}` : `נוצרה ב"${h.new_status}"`}
-                    </span>
-                    <span className="meta-text">
-                      {profilesById[h.changed_by]?.full_name ?? '...'} · {formatDate(h.changed_at?.slice(0, 10))}
-                    </span>
-                  </div>
-                ))}
-                {history.length === 0 && <div className="empty-state">אין עדיין היסטוריה</div>}
-              </div>
-            </div>
-
-            <div className="section">
-              <h3>התכתבות</h3>
-              <div>
-                {comments.map((c) => (
-                  <div className="comment" key={c.id}>
-                    <Avatar name={profilesById[c.user_id]?.full_name} avatarPath={profilesById[c.user_id]?.avatar_url} />
-                    <div>
-                      <div className="who">
-                        {profilesById[c.user_id]?.full_name ?? '...'}
-                        <time>{formatDate(c.created_at?.slice(0, 10))}</time>
-                      </div>
-                      <div className="ctext">{renderCommentText(c.text)}</div>
-                    </div>
-                  </div>
-                ))}
-                {comments.length === 0 && <div className="empty-state">אין עדיין תגובות</div>}
-              </div>
-              <form className="comment-input" onSubmit={handleAddComment}>
-                <input
-                  type="text"
-                  placeholder="כתבו הערה..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                />
-                <button type="submit" disabled={commentBusy || !commentText.trim()}>
-                  שלח
+              <div className="tab-switcher">
+                <button
+                  type="button"
+                  className={'tab' + (detailTab === 'comments' ? ' active' : '')}
+                  onClick={() => setDetailTab('comments')}
+                >
+                  הערות
                 </button>
-              </form>
+                <button
+                  type="button"
+                  className={'tab' + (detailTab === 'history' ? ' active' : '')}
+                  onClick={() => setDetailTab('history')}
+                >
+                  היסטוריה
+                </button>
+              </div>
+
+              {detailTab === 'comments' ? (
+                <>
+                  <div>
+                    {comments.map((c) => (
+                      <div className="comment" key={c.id}>
+                        <Avatar
+                          name={profilesById[c.user_id]?.full_name}
+                          avatarPath={profilesById[c.user_id]?.avatar_url}
+                        />
+                        <div>
+                          <div className="who">
+                            {profilesById[c.user_id]?.full_name ?? '...'}
+                            <time>{formatDate(c.created_at?.slice(0, 10))}</time>
+                          </div>
+                          <div className="ctext">{renderCommentText(c.text)}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {comments.length === 0 && <div className="empty-state">אין עדיין הערות</div>}
+                  </div>
+                  <form className="comment-input" onSubmit={handleAddComment}>
+                    <input
+                      type="text"
+                      placeholder="כתבו הערה..."
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                    />
+                    <button type="submit" disabled={commentBusy || !commentText.trim()}>
+                      שלח
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className="history-list">
+                  {history.map((h) => (
+                    <div className="history-row" key={h.id}>
+                      <span className="meta-text">
+                        {h.old_status ? `${h.old_status} ← ${h.new_status}` : `נוצרה ב"${h.new_status}"`}
+                      </span>
+                      <span className="meta-text">
+                        {profilesById[h.changed_by]?.full_name ?? '...'} · {formatDate(h.changed_at?.slice(0, 10))}
+                      </span>
+                    </div>
+                  ))}
+                  {history.length === 0 && <div className="empty-state">אין עדיין היסטוריה</div>}
+                </div>
+              )}
             </div>
           </div>
 
