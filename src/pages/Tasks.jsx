@@ -84,7 +84,7 @@ export default function Tasks() {
                 key={task.id}
                 task={task}
                 clientName={task.client_id ? clientsById[task.client_id]?.name : null}
-                assigneeName={task.assigned_to ? profilesById[task.assigned_to]?.full_name : null}
+                assignee={task.assigned_to ? profilesById[task.assigned_to] : null}
               />
             ))}
           </div>

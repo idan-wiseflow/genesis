@@ -8,6 +8,7 @@ import {
   detachTag,
   getTask,
   listTaskComments,
+  listTaskStatusHistory,
   listTaskTagIds,
   listTags,
   updateTask,
@@ -21,10 +22,11 @@ import {
   STATUS_BADGE_CLASS,
   STATUS_ORDER,
 } from '../lib/taskStatus'
-import { formatDate, initials } from '../lib/format'
+import { formatDate } from '../lib/format'
 import { useClientsById } from '../hooks/useClientsById'
 import { useProfilesById } from '../hooks/useProfilesById'
 import InlineEditor from '../components/InlineEditor'
+import Avatar from '../components/Avatar'
 
 const MENTION_RE = /(@[\p{L}\p{N}_'"]+)/gu
 
@@ -87,6 +89,7 @@ export default function TaskDetail() {
   const [commentBusy, setCommentBusy] = useState(false)
   const [addTagValue, setAddTagValue] = useState('')
   const [newTagName, setNewTagName] = useState('')
+  const [history, setHistory] = useState([])
 
   useEffect(() => {
     let active = true
@@ -96,6 +99,7 @@ export default function TaskDetail() {
     listTaskComments(taskId).then((rows) => active && setComments(rows))
     listTaskTagIds(taskId).then((ids) => active && setTagIds(ids))
     listTags().then((rows) => active && setAllTags(rows))
+    listTaskStatusHistory(taskId).then((rows) => active && setHistory(rows))
     return () => {
       active = false
     }
@@ -290,11 +294,28 @@ export default function TaskDetail() {
             </div>
 
             <div className="section">
+              <h3>היסטוריה</h3>
+              <div className="history-list">
+                {history.map((h) => (
+                  <div className="history-row" key={h.id}>
+                    <span className="meta-text">
+                      {h.old_status ? `${h.old_status} ← ${h.new_status}` : `נוצרה ב"${h.new_status}"`}
+                    </span>
+                    <span className="meta-text">
+                      {profilesById[h.changed_by]?.full_name ?? '...'} · {formatDate(h.changed_at?.slice(0, 10))}
+                    </span>
+                  </div>
+                ))}
+                {history.length === 0 && <div className="empty-state">אין עדיין היסטוריה</div>}
+              </div>
+            </div>
+
+            <div className="section">
               <h3>התכתבות</h3>
               <div>
                 {comments.map((c) => (
                   <div className="comment" key={c.id}>
-                    <span className="avatar">{initials(profilesById[c.user_id]?.full_name)}</span>
+                    <Avatar name={profilesById[c.user_id]?.full_name} avatarPath={profilesById[c.user_id]?.avatar_url} />
                     <div>
                       <div className="who">
                         {profilesById[c.user_id]?.full_name ?? '...'}

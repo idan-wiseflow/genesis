@@ -10,7 +10,7 @@ import { supabase } from './supabaseClient'
 export async function listProfiles() {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, permission_level, roles')
+    .select('id, full_name, permission_level, roles, avatar_url')
     .order('full_name')
   if (error) throw error
   return data
@@ -162,4 +162,26 @@ export async function addTaskComment(taskId, userId, text) {
   const { data, error: readError } = await supabase.from('task_comments').select('*').eq('id', id).single()
   if (readError) throw readError
   return data
+}
+
+// ===== task_status_history (007, לקריאה בלבד - הכתיבה כולה דרך הטריגרים) =====
+
+export async function listTaskStatusHistory(taskId) {
+  const { data, error } = await supabase
+    .from('task_status_history')
+    .select('*')
+    .eq('task_id', taskId)
+    .order('changed_at', { ascending: true })
+  if (error) throw error
+  return data
+}
+
+// ===== פרופיל עצמי (008/009) =====
+
+export async function updateOwnProfile(fullName, avatarPath) {
+  const { error } = await supabase.rpc('update_own_profile', {
+    new_full_name: fullName,
+    new_avatar_url: avatarPath ?? null,
+  })
+  if (error) throw error
 }

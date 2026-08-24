@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Logo from './Logo'
+import Avatar from './Avatar'
 
 const NAV_ITEMS = [
   { to: '/', label: 'בית', icon: '🏠', end: true },
@@ -36,7 +37,7 @@ export default function Sidebar() {
           <span>הגדרות</span>
         </NavLink>
         <button className="sidebar-user" onClick={signOut} type="button">
-          <span className="avatar">{(profile?.full_name || '?').slice(0, 2)}</span>
+          <Avatar name={profile?.full_name} avatarPath={profile?.avatar_url} />
           <span>{profile?.full_name ?? 'טוען...'}</span>
         </button>
       </div>

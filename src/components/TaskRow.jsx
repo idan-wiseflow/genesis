@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
 import { PRIORITY_BADGE_CLASS, STATUS_BADGE_CLASS } from '../lib/taskStatus'
-import { formatDate, initials } from '../lib/format'
+import { formatDate } from '../lib/format'
+import Avatar from './Avatar'
 
 // שורת משימה משותפת ל-Home, Tasks ו-ClientDetail (רשימת המשימות של הלקוח).
 // showClient=false ב-ClientDetail, כי שם כבר ברור באיזה לקוח מדובר.
-export default function TaskRow({ task, clientName, assigneeName, showClient = true }) {
+// assignee הוא אובייקט הפרופיל (full_name+avatar_url), לא רק שם, כדי שתמונת
+// הפרופיל תופיע גם כאן אם יש (008/009).
+export default function TaskRow({ task, clientName, assignee, showClient = true }) {
   const due = formatDate(task.due_date)
 
   return (
@@ -16,11 +19,7 @@ export default function TaskRow({ task, clientName, assigneeName, showClient = t
       <div className="task-row-meta">
         <span className={`badge ${PRIORITY_BADGE_CLASS[task.priority]}`}>{task.priority}</span>
         <span className={`badge ${STATUS_BADGE_CLASS[task.status]}`}>{task.status}</span>
-        {assigneeName && (
-          <span className="avatar" title={assigneeName}>
-            {initials(assigneeName)}
-          </span>
-        )}
+        {assignee && <Avatar name={assignee.full_name} avatarPath={assignee.avatar_url} />}
         {due && <span className="task-row-due">{due}</span>}
       </div>
     </Link>

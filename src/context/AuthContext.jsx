@@ -20,13 +20,15 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // מחוץ ל-effect בכוונה: גם refreshProfile למטה קורא לה, אחרי עדכון עצמי
+  // במסך הגדרות (008/009), לא רק ה-effect הפנימי בעת שינוי session.
+  async function loadProfile(userId) {
+    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    setProfile(data ?? null)
+  }
+
   useEffect(() => {
     let active = true
-
-    async function loadProfile(userId) {
-      const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-      if (active) setProfile(data ?? null)
-    }
 
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return
@@ -64,6 +66,7 @@ export function AuthProvider({ children }) {
     loading,
     user: session?.user ?? null,
     signOut: () => supabase.auth.signOut(),
+    refreshProfile: () => (session?.user ? loadProfile(session.user.id) : Promise.resolve()),
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

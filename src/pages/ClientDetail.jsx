@@ -3,11 +3,12 @@ import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getClient, listClientTasks, updateClient } from '../lib/queries'
 import { canEditProjectManager, canManageClients } from '../lib/permissions'
-import { formatCurrency, initials } from '../lib/format'
+import { formatCurrency } from '../lib/format'
 import { CLIENT_ROLE_FIELDS } from '../lib/clientRoles'
 import { useProfilesById } from '../hooks/useProfilesById'
 import TaskRow from '../components/TaskRow'
 import ClientForm from '../components/ClientForm'
+import Avatar from '../components/Avatar'
 
 export default function ClientDetail() {
   const { clientId } = useParams()
@@ -95,15 +96,15 @@ export default function ClientDetail() {
               <h3>צוות מוקצה</h3>
               <div className="field-grid">
                 {CLIENT_ROLE_FIELDS.map(({ field, label }) => {
-                  const name = client[field] ? profilesById[client[field]]?.full_name : null
+                  const person = client[field] ? profilesById[client[field]] : null
                   return (
                     <div className="field" key={field}>
                       <div className="k">{label}</div>
                       <div className="v">
-                        {name ? (
+                        {person ? (
                           <>
-                            <span className="avatar">{initials(name)}</span>
-                            {name}
+                            <Avatar name={person.full_name} avatarPath={person.avatar_url} />
+                            {person.full_name}
                           </>
                         ) : (
                           <span className="meta-text">לא משויך</span>
@@ -145,7 +146,7 @@ export default function ClientDetail() {
                       key={task.id}
                       task={task}
                       showClient={false}
-                      assigneeName={task.assigned_to ? profilesById[task.assigned_to]?.full_name : null}
+                      assignee={task.assigned_to ? profilesById[task.assigned_to] : null}
                     />
                   ))}
                 </div>
