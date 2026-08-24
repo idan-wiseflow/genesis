@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -31,6 +31,13 @@ import { useClientsById } from '../hooks/useClientsById'
 import { useProfilesById } from '../hooks/useProfilesById'
 import InlineEditor from '../components/InlineEditor'
 import Avatar from '../components/Avatar'
+import TaskDescriptionHtml from '../components/TaskDescriptionHtml'
+
+// טעון עצל: Tiptap מוסיף כ-400KB ל-bundle. רוב הביקורים במסך הזה הם קריאה
+// בלבד (TaskDescriptionHtml, קל, לא עצל), רק לחיצה בפועל על "עריכה" בתיאור
+// טוענת את זה. בלי זה, כל טעינה ראשונה של האפליקציה סוחבת עורך WYSIWYG
+// שרוב המבקרים לעולם לא פותחים.
+const RichTextEditor = lazy(() => import('../components/RichTextEditor'))
 
 const MENTION_RE = /(@[\p{L}\p{N}_'"]+)/gu
 
@@ -358,25 +365,28 @@ export default function TaskDetail() {
             </div>
 
             <div className="section">
-              <h3>תיאור</h3>
+              <div className="section-head">
+                <h3>תיאור</h3>
+                {canEdit && editingField !== 'description' && (
+                  <button type="button" className="section-edit-btn" onClick={() => setEditingField('description')}>
+                    עריכה
+                  </button>
+                )}
+              </div>
               {editingField === 'description' ? (
-                <>
-                  <InlineEditor
-                    type="textarea"
+                <Suspense fallback={<div className="empty-state">טוען עורך...</div>}>
+                  <RichTextEditor
+                    taskId={taskId}
                     value={task.description ?? ''}
                     onSave={(v) => saveField('description', v)}
                     onCancel={() => setEditingField(null)}
-                    onPasteFile={uploadOneFile}
                   />
-                  <div className="form-hint">אפשר להדביק צילום מסך (Ctrl+V), הוא יתווסף כקובץ מצורף</div>
-                </>
+                </Suspense>
               ) : (
-                <p
-                  className={'desc' + (canEdit ? ' clickable' : '')}
-                  onClick={() => canEdit && setEditingField('description')}
-                >
-                  {task.description || (canEdit ? 'אין תיאור, לחצו להוספה' : 'אין תיאור')}
-                </p>
+                <TaskDescriptionHtml
+                  html={task.description}
+                  emptyText={canEdit ? 'אין תיאור, לחצו על עריכה להוספה' : 'אין תיאור'}
+                />
               )}
             </div>
 

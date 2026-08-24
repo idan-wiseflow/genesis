@@ -11,6 +11,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
+    "@tiptap/extension-image": "^3.30.3",
+    "@tiptap/extension-link": "^3.30.3",
+    "@tiptap/extension-placeholder": "^3.30.3",
+    "@tiptap/react": "^3.30.3",
+    "@tiptap/starter-kit": "^3.30.3",
+    "dompurify": "^3.4.14",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"
