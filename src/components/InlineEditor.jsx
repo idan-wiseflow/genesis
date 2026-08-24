@@ -4,7 +4,9 @@ import { useState } from 'react'
 // זה באחריות הקורא, כדי שאותו רכיב ישרת גם h1 (כותרת), גם פסקת תיאור,
 // וגם שדות בסיידבר. onSave יכול לזרוק, ההודעה מוצגת כמו שהיא (הקורא כבר
 // דואג לסניטציה של שגיאות שרת, ראו describeTaskError).
-export default function InlineEditor({ type = 'text', value, options, onSave, onCancel }) {
+// onPasteFile (רק ל-textarea): אם ה-clipboard מכיל תמונה, מעלה אותה כקובץ
+// מצורף במקום להטביע בטקסט. לא נוגע ב-draft, זו זרימה נפרדת לגמרי.
+export default function InlineEditor({ type = 'text', value, options, onSave, onCancel, onPasteFile }) {
   const [draft, setDraft] = useState(value ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -25,6 +27,14 @@ export default function InlineEditor({ type = 'text', value, options, onSave, on
     if (e.key === 'Enter' && type !== 'textarea') handleSave()
   }
 
+  function handlePaste(e) {
+    if (!onPasteFile) return
+    const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith('image/'))
+    if (!item) return
+    const file = item.getAsFile()
+    if (file) onPasteFile(file)
+  }
+
   return (
     <div className="inline-editor">
       {type === 'textarea' && (
@@ -33,6 +43,7 @@ export default function InlineEditor({ type = 'text', value, options, onSave, on
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           autoFocus
           disabled={busy}
         />

@@ -3,16 +3,20 @@ import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   addTaskComment,
+  addTaskFile,
   attachTag,
   createTag,
+  deleteTaskFile,
   detachTag,
   getTask,
   listTaskComments,
+  listTaskFiles,
   listTaskStatusHistory,
   listTaskTagIds,
   listTags,
   updateTask,
 } from '../lib/queries'
+import { deleteTaskFileObject, getTaskFileSignedUrl, uploadTaskFile } from '../lib/taskFiles'
 import { canCreateTags, canEditTask } from '../lib/permissions'
 import {
   describeTaskError,
@@ -71,6 +75,52 @@ function EditableField({ label, display, value, type, options, editable, isEditi
   )
 }
 
+// שורת קובץ מצורף: signed URL נחתם בזמן תצוגה (bucket פרטי), עם download
+// כפוי (lib/taskFiles.js) כדי שקובץ מסוכן שהועלה בטעות לא ייפתח inline.
+function FileRow({ file, canDelete, onDeleted }) {
+  const [url, setUrl] = useState(null)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    getTaskFileSignedUrl(file.file_url)
+      .then((signed) => active && setUrl(signed))
+      .catch(() => active && setUrl(null))
+    return () => {
+      active = false
+    }
+  }, [file.file_url])
+
+  async function handleDelete() {
+    setBusy(true)
+    try {
+      await deleteTaskFileObject(file.file_url)
+      await deleteTaskFile(file.id)
+      onDeleted(file.id)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="file-row">
+      <span className="file-ic">📎</span>
+      {url ? (
+        <a className="file-name" href={url}>
+          {file.file_name}
+        </a>
+      ) : (
+        <span className="file-name">{file.file_name}</span>
+      )}
+      {canDelete && (
+        <button type="button" className="tag-remove" onClick={handleDelete} disabled={busy}>
+          ✕
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function TaskDetail() {
   const { taskId } = useParams()
   const { profile, user } = useAuth()
@@ -90,6 +140,9 @@ export default function TaskDetail() {
   const [addTagValue, setAddTagValue] = useState('')
   const [newTagName, setNewTagName] = useState('')
   const [history, setHistory] = useState([])
+  const [files, setFiles] = useState([])
+  const [fileError, setFileError] = useState('')
+  const [uploadBusy, setUploadBusy] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -100,6 +153,7 @@ export default function TaskDetail() {
     listTaskTagIds(taskId).then((ids) => active && setTagIds(ids))
     listTags().then((rows) => active && setAllTags(rows))
     listTaskStatusHistory(taskId).then((rows) => active && setHistory(rows))
+    listTaskFiles(taskId).then((rows) => active && setFiles(rows))
     return () => {
       active = false
     }
@@ -196,6 +250,35 @@ export default function TaskDetail() {
     setNewTagName('')
   }
 
+  async function uploadOneFile(file) {
+    setUploadBusy(true)
+    setFileError('')
+    try {
+      const path = await uploadTaskFile(taskId, file)
+      const id = await addTaskFile(taskId, user.id, path, file.name)
+      setFiles((prev) => [
+        ...prev,
+        { id, task_id: taskId, file_url: path, file_name: file.name, uploaded_by: user.id },
+      ])
+    } catch (err) {
+      setFileError(err.message ?? 'העלאה נכשלה')
+    } finally {
+      setUploadBusy(false)
+    }
+  }
+
+  async function handleFileInputChange(e) {
+    const selected = Array.from(e.target.files ?? [])
+    e.target.value = ''
+    for (const file of selected) {
+      await uploadOneFile(file)
+    }
+  }
+
+  function handleFileDeleted(fileId) {
+    setFiles((prev) => prev.filter((f) => f.id !== fileId))
+  }
+
   const clientOptions = [
     { value: '', label: 'ללא לקוח' },
     ...clients.map((c) => ({ value: c.id, label: c.name })),
@@ -277,12 +360,16 @@ export default function TaskDetail() {
             <div className="section">
               <h3>תיאור</h3>
               {editingField === 'description' ? (
-                <InlineEditor
-                  type="textarea"
-                  value={task.description ?? ''}
-                  onSave={(v) => saveField('description', v)}
-                  onCancel={() => setEditingField(null)}
-                />
+                <>
+                  <InlineEditor
+                    type="textarea"
+                    value={task.description ?? ''}
+                    onSave={(v) => saveField('description', v)}
+                    onCancel={() => setEditingField(null)}
+                    onPasteFile={uploadOneFile}
+                  />
+                  <div className="form-hint">אפשר להדביק צילום מסך (Ctrl+V), הוא יתווסף כקובץ מצורף</div>
+                </>
               ) : (
                 <p
                   className={'desc' + (canEdit ? ' clickable' : '')}
@@ -291,6 +378,23 @@ export default function TaskDetail() {
                   {task.description || (canEdit ? 'אין תיאור, לחצו להוספה' : 'אין תיאור')}
                 </p>
               )}
+            </div>
+
+            <div className="section">
+              <h3>קבצים מצורפים</h3>
+              <div className="file-list">
+                {files.map((f) => (
+                  <FileRow key={f.id} file={f} canDelete={canEdit} onDeleted={handleFileDeleted} />
+                ))}
+                {files.length === 0 && <div className="empty-state">אין קבצים מצורפים</div>}
+              </div>
+              {canEdit && (
+                <label className="btn-ghost profile-avatar-upload file-upload-trigger">
+                  {uploadBusy ? 'מעלה...' : 'העלאת קובץ'}
+                  <input type="file" multiple onChange={handleFileInputChange} disabled={uploadBusy} hidden />
+                </label>
+              )}
+              {fileError && <p className="form-error">{fileError}</p>}
             </div>
 
             <div className="section">

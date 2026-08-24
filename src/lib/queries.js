@@ -142,6 +142,35 @@ export async function detachTag(taskId, tagId) {
   if (error) throw error
 }
 
+// ===== task_files (006) =====
+// file_url מחזיק נתיב אחסון, לא URL (bucket פרטי, ראו lib/taskFiles.js).
+
+export async function listTaskFiles(taskId) {
+  const { data, error } = await supabase
+    .from('task_files')
+    .select('*')
+    .eq('task_id', taskId)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return data
+}
+
+// מזהה נוצר בצד לקוח (כמו createClient/createTask/createTag), לא RETURNING -
+// כדי שהקוד הקורא ידע את ה-id האמיתי בלי לסמוך על ברירת המחדל של הטבלה.
+export async function addTaskFile(taskId, userId, path, fileName) {
+  const id = crypto.randomUUID()
+  const { error } = await supabase
+    .from('task_files')
+    .insert({ id, task_id: taskId, file_url: path, file_name: fileName, uploaded_by: userId })
+  if (error) throw error
+  return id
+}
+
+export async function deleteTaskFile(fileId) {
+  const { error } = await supabase.from('task_files').delete().eq('id', fileId)
+  if (error) throw error
+}
+
 // ===== task_comments =====
 
 export async function listTaskComments(taskId) {
