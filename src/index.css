@@ -362,3 +362,513 @@ h3 {
     display: none;
   }
 }
+
+/* ===== title row + meta strip (מסכי פרטים) ===== */
+
+.title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.title-row h1 {
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.meta-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.meta-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+}
+.meta-text {
+  font-size: 12.5px;
+  color: var(--muted-fg);
+  text-decoration: none;
+}
+a.meta-text:hover {
+  color: var(--fg);
+}
+
+/* ===== רשימות (משימות/לקוחות) ===== */
+
+.list-toolbar {
+  margin-bottom: 16px;
+}
+.chip-toggle {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-fg);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip-toggle.active {
+  background: var(--muted);
+  color: var(--fg);
+  border-color: var(--fg);
+}
+
+.empty-state {
+  padding: 32px 0;
+  text-align: center;
+  color: var(--muted-fg);
+  font-size: 13.5px;
+}
+
+.task-list,
+.client-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-row,
+.client-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  text-decoration: none;
+  color: inherit;
+}
+.task-row:hover,
+.client-row:hover {
+  border-color: var(--muted-fg);
+}
+
+.task-row-main,
+.client-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.task-row-title,
+.client-row-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+.task-row-client {
+  font-size: 12px;
+  color: var(--muted-fg);
+}
+.task-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.task-row-due {
+  font-size: 12px;
+  color: var(--muted-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.client-row-roles {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+.client-row-financial {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ===== מודל ===== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 9, 11, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 20px;
+}
+.modal-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  width: min(520px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-head h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.modal-close {
+  border: none;
+  background: none;
+  color: var(--muted-fg);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+}
+.modal-close:hover {
+  color: var(--fg);
+}
+.modal-body {
+  padding: 20px;
+}
+
+/* ===== טפסים ===== */
+
+.entity-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.entity-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted-fg);
+}
+.entity-form input,
+.entity-form select,
+.entity-form textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 13.5px;
+  background: var(--bg);
+  color: var(--fg);
+}
+.entity-form input:focus-visible,
+.entity-form select:focus-visible,
+.entity-form textarea:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 1px;
+}
+.entity-form textarea {
+  resize: vertical;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.form-hint {
+  font-size: 11.5px;
+  color: var(--muted-fg);
+  font-weight: 400;
+}
+.form-error {
+  color: var(--urgent);
+  font-size: 12.5px;
+  margin: 0;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-ghost:hover {
+  background: var(--muted);
+}
+.btn-ghost:disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== פרטי משימה: stepper, סקשנים, תגובות =====
+   מותאם ממוקאפ העיצוב (_process/design-mockup-phase1.html), עם התיקון ל-RTL
+   שנרשם ב-24.08.2026: left:50% על .line, לא right - אחרת הקו נמשך לשלב הבא
+   במקום להתחבר אחורה לשלב שכבר הושלם. */
+
+.detail-page.wide {
+  max-width: 980px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  gap: 40px;
+  margin-top: 8px;
+}
+@media (max-width: 780px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.section {
+  margin-bottom: 30px;
+}
+.section h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-fg);
+  margin: 0 0 12px;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+}
+.stepper .seg {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  position: relative;
+}
+.stepper .seg .line {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+.stepper .seg:first-child .line {
+  display: none;
+}
+.stepper .seg.done .line {
+  background: var(--accent);
+}
+.stepper .node {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--border);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--bg);
+}
+.stepper .seg.done .node {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+.stepper .seg.current .node {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.stepper .label {
+  font-size: 10.5px;
+  color: var(--muted-fg);
+  text-align: center;
+}
+.stepper .seg.done .label,
+.stepper .seg.current .label {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.stepper-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.desc {
+  font-size: 14px;
+  color: var(--muted-fg);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.comment {
+  display: flex;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.comment:last-of-type {
+  border-bottom: none;
+}
+.comment .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+  margin: 0;
+}
+.comment .who {
+  font-size: 13px;
+  font-weight: 600;
+}
+.comment .who time {
+  font-weight: 400;
+  color: var(--muted-fg);
+  font-size: 11.5px;
+  margin-inline-start: 8px;
+}
+.comment .ctext {
+  font-size: 13.5px;
+  color: var(--muted-fg);
+  margin-top: 3px;
+}
+.mention {
+  color: var(--fg);
+  font-weight: 600;
+  background: var(--muted);
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+.comment-input {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.comment-input input {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  background: var(--card);
+  color: var(--fg);
+}
+.comment-input input:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 1px;
+}
+.comment-input button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--fg);
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.side .field {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.side .field:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+.side .k {
+  font-size: 11.5px;
+  color: var(--muted-fg);
+  margin-bottom: 6px;
+}
+.side .v {
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--muted);
+  color: var(--fg);
+}
+.tag-remove {
+  border: none;
+  background: none;
+  color: var(--muted-fg);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0;
+}
+.tag-remove:hover {
+  color: var(--urgent);
+}
+.tag-add-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.tag-add-row select,
+.tag-add-row input {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 9px;
+  font-size: 12.5px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* ===== פרטי לקוח: רשת שדות סטטית, בלי stepper ===== */
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+.field-grid .field {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.field-grid .k {
+  font-size: 11.5px;
+  color: var(--muted-fg);
+  margin-bottom: 6px;
+}
+.field-grid .v {
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
