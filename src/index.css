@@ -468,6 +468,22 @@ a.meta-text:hover {
   gap: 8px;
 }
 
+.role-tags-label {
+  margin-bottom: 6px;
+}
+.role-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.user-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
 .profile-avatar-row {
   display: flex;
   align-items: center;

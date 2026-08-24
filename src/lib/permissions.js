@@ -50,3 +50,10 @@ export function canCreateTags(profile) {
 export function canEditTask(profile, task, userId) {
   return isManagementOrPM(profile) || task?.assigned_to === userId
 }
+
+// מראה את הבדיקה בתוך Edge Function create-user עצמה (לא RLS): רק הנהלה
+// יכולה ליצור משתמש. ה-Edge Function אוכפת את זה בעצמה בצד שרת ללא תלות
+// בבדיקה הזו, זה רק UX (מסתיר את מסך המשתמשים ממי שממילא לא יכול לפעול בו).
+export function canCreateUsers(profile) {
+  return isManagement(profile)
+}

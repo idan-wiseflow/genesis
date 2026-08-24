@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { canCreateUsers } from '../lib/permissions'
 import Logo from './Logo'
 import Avatar from './Avatar'
 
@@ -11,6 +12,9 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const { profile, signOut } = useAuth()
+  const navItems = canCreateUsers(profile)
+    ? [...NAV_ITEMS, { to: '/users', label: 'משתמשים', icon: '👤' }]
+    : NAV_ITEMS
 
   return (
     <nav className="sidebar">
@@ -19,7 +23,7 @@ export default function Sidebar() {
         <div className="sidebar-word">לוח משימות</div>
       </div>
       <div className="nav">
-        {NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

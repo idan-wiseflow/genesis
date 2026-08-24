@@ -8,6 +8,7 @@ import TaskDetail from './pages/TaskDetail'
 import Clients from './pages/Clients'
 import ClientDetail from './pages/ClientDetail'
 import Settings from './pages/Settings'
+import Users from './pages/Users'
 
 function AppShell() {
   const { session, loading } = useAuth()
@@ -26,6 +27,7 @@ function AppShell() {
           <Route path="/clients" element={<Clients />} />
           <Route path="/clients/:clientId" element={<ClientDetail />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/users" element={<Users />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

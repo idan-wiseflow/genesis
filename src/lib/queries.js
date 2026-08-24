@@ -16,6 +16,21 @@ export async function listProfiles() {
   return data
 }
 
+// יצירת משתמש עוברת רק דרך ה-Edge Function (service_role חי רק שם, לעולם
+// לא בפרונט, ראו tech-decisions.md). supabase-js מצרף אוטומטית את ה-JWT
+// של המשתמש המחובר להזמנה, הפונקציה בודקת בעצמה שהוא הנהלה, בלי תלות
+// בבדיקת ה-UI (canCreateUsers ב-permissions.js הוא mirror בלבד).
+export async function createUser({ email, password, fullName, permissionLevel, roles }) {
+  const { data, error } = await supabase.functions.invoke('create-user', {
+    body: { email, password, full_name: fullName, permission_level: permissionLevel, roles },
+  })
+  if (error) {
+    const message = (await error.context?.json?.().catch(() => null))?.error
+    throw new Error(message || error.message)
+  }
+  return data
+}
+
 // ===== clients (דרך clients_view בלבד) =====
 
 export async function listClients() {
