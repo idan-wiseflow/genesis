@@ -15,6 +15,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Supabase CLI (מטמון מקומי, project-ref כבר ידוע מ-tech-decisions.md)
+supabase/.temp
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
