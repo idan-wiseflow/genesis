@@ -175,11 +175,16 @@ export async function removeTaskOverride(overrideId) {
 
 // לוג בלתי-ניתן-לזיוף (015): נכתב רק ע"י טריגר SECURITY DEFINER על
 // client_package_task_overrides, לא ע"י הקוד הזה. קריאה בלבד.
-export async function listClientPackageOverrideHistory(clientPackageId) {
+// לשונית "היסטוריה" ברמת הלקוח (לא פר-כרטיס חבילה, עידן 25.08.2026: "עדיין
+// לא רואה את ההיסטוריה בלקוח" - הפכה ללשונית עצמאית בכרטיס הלקוח, כדי שתהיה
+// גלויה מיד ולא מקוננת בתוך כל כרטיס חבילה בנפרד). !inner כדי שסינון
+// client_packages.client_id יעבוד נכון על ה-embed, כולל חבילות שהוסרו
+// (ended_at לא null), כי לוג היסטוריה צריך להישאר שלם גם אחרי הסרה.
+export async function listClientPackageHistory(clientId) {
   const { data, error } = await supabase
     .from('client_package_task_override_history')
-    .select('*, package_task_templates(task_name)')
-    .eq('client_package_id', clientPackageId)
+    .select('*, package_task_templates(task_name), client_packages!inner(client_id, package_definitions(name))')
+    .eq('client_packages.client_id', clientId)
     .order('changed_at', { ascending: false })
   if (error) throw error
   return data

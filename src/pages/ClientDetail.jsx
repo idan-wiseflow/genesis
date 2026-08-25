@@ -3,7 +3,9 @@ import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getClient, listClientTasks, updateClient } from '../lib/queries'
 import { canEditProjectManager, canManageClients } from '../lib/permissions'
-import { formatCurrency } from '../lib/format'
+import { listClientPackageHistory } from '../lib/packages'
+import { FREQUENCY_LABELS } from '../lib/packageMeta'
+import { formatCurrency, formatDate } from '../lib/format'
 import { CLIENT_ROLE_FIELDS } from '../lib/clientRoles'
 import { useProfilesById } from '../hooks/useProfilesById'
 import TaskRow from '../components/TaskRow'
@@ -47,6 +49,7 @@ export default function ClientDetail() {
   const [client, setClient] = useState(null)
   const [notFound, setNotFound] = useState(false)
   const [tasks, setTasks] = useState([])
+  const [history, setHistory] = useState([])
   const [editingField, setEditingField] = useState(null)
   const [detailTab, setDetailTab] = useState('packages')
 
@@ -56,6 +59,7 @@ export default function ClientDetail() {
       .then((row) => active && setClient(row))
       .catch(() => active && setNotFound(true))
     listClientTasks(clientId).then((rows) => active && setTasks(rows))
+    listClientPackageHistory(clientId).then((rows) => active && setHistory(rows))
     return () => {
       active = false
     }
@@ -279,11 +283,21 @@ export default function ClientDetail() {
             >
               משימות{tasks.length > 0 ? ` (${tasks.length})` : ''}
             </button>
+            <button
+              type="button"
+              className={'tab' + (detailTab === 'history' ? ' active' : '')}
+              onClick={() => {
+                setDetailTab('history')
+                listClientPackageHistory(clientId).then(setHistory)
+              }}
+            >
+              היסטוריה
+            </button>
           </div>
 
-          {detailTab === 'packages' ? (
-            <ClientPackagesSection clientId={clientId} canEdit={canEdit} />
-          ) : (
+          {detailTab === 'packages' && <ClientPackagesSection clientId={clientId} canEdit={canEdit} />}
+
+          {detailTab === 'tasks' && (
             <>
               {tasks.length === 0 && <div className="empty-state">אין משימות ללקוח הזה</div>}
               {tasks.length > 0 && (
@@ -299,6 +313,26 @@ export default function ClientDetail() {
                 </div>
               )}
             </>
+          )}
+
+          {detailTab === 'history' && (
+            <div className="history-list">
+              {history.map((h) => (
+                <div className="history-row" key={h.id}>
+                  <span className="meta-text">
+                    {h.client_packages?.package_definitions?.name ?? 'חבילה'}
+                    {' · '}
+                    {h.package_task_templates?.task_name ?? 'משימה'}
+                    {' · '}
+                    {h.action === 'set' ? `${h.quantity} · ${FREQUENCY_LABELS[h.frequency]}` : 'ההתאמה הוסרה'}
+                  </span>
+                  <span className="meta-text">
+                    {profilesById[h.changed_by]?.full_name ?? 'לא ידוע'} · {formatDate(h.changed_at)}
+                  </span>
+                </div>
+              ))}
+              {history.length === 0 && <div className="empty-state">אין שינויים רשומים</div>}
+            </div>
           )}
         </div>
       </div>
