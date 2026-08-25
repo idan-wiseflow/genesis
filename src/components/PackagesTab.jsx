@@ -1,18 +1,28 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { canManagePackages } from '../lib/permissions'
 import {
   listDepartments,
   listCurrentPackages,
   listPackageTemplates,
   savePackageVersion,
+  createDepartment,
+  renameDepartment,
 } from '../lib/packages'
 import Modal from './Modal'
 import PackageEditor from './PackageEditor'
+import InlineEditor from './InlineEditor'
 
 export default function PackagesTab() {
+  const { profile } = useAuth()
+  const canManage = canManagePackages(profile)
+
   const [departments, setDepartments] = useState([])
   const [packages, setPackages] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null) // { definition, templates } | 'new' | null
+  const [editingDeptId, setEditingDeptId] = useState(null)
+  const [newDeptName, setNewDeptName] = useState('')
   const [error, setError] = useState('')
 
   async function refresh() {
@@ -43,6 +53,25 @@ export default function PackagesTab() {
     setEditing(null)
   }
 
+  async function handleRenameDepartment(id, name) {
+    if (!name.trim()) throw new Error('שם מחלקה חובה')
+    await renameDepartment(id, name.trim())
+    await refresh()
+    setEditingDeptId(null)
+  }
+
+  async function handleAddDepartment() {
+    if (!newDeptName.trim()) return
+    setError('')
+    try {
+      await createDepartment(newDeptName.trim())
+      setNewDeptName('')
+      await refresh()
+    } catch (err) {
+      setError(err.message ?? 'משהו השתבש')
+    }
+  }
+
   const bundles = packages.filter((p) => p.is_bundle)
   const byDepartment = departments.map((d) => ({
     department: d,
@@ -62,6 +91,20 @@ export default function PackagesTab() {
 
       {error && <p className="form-error">{error}</p>}
 
+      {canManage && (
+        <div className="tag-add-row">
+          <input
+            type="text"
+            placeholder="שם מחלקה חדשה"
+            value={newDeptName}
+            onChange={(e) => setNewDeptName(e.target.value)}
+          />
+          <button type="button" className="btn-ghost" onClick={handleAddDepartment}>
+            + מחלקה חדשה
+          </button>
+        </div>
+      )}
+
       {bundles.length > 0 && (
         <div className="section">
           <h3>בנדלים חוצי-מחלקות</h3>
@@ -78,7 +121,21 @@ export default function PackagesTab() {
 
       {byDepartment.map(({ department, packages: deptPackages }) => (
         <div className="section" key={department.id}>
-          <h3>{department.name}</h3>
+          {canManage && editingDeptId === department.id ? (
+            <InlineEditor
+              type="text"
+              value={department.name}
+              onSave={(v) => handleRenameDepartment(department.id, v)}
+              onCancel={() => setEditingDeptId(null)}
+            />
+          ) : (
+            <h3
+              className={canManage ? 'clickable' : undefined}
+              onClick={() => canManage && setEditingDeptId(department.id)}
+            >
+              {department.name}
+            </h3>
+          )}
           {deptPackages.length === 0 && <div className="empty-state">אין עדיין חבילות במחלקה הזו</div>}
           {deptPackages.length > 0 && (
             <div className="task-list">

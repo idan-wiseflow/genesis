@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { WORK_STAGES, FREQUENCIES, FREQUENCY_LABELS } from '../lib/packageMeta'
+import Checkbox from './Checkbox'
 
 function emptyRow() {
   return {
@@ -87,10 +88,9 @@ export default function PackageEditor({ initial, initialTemplates, departments, 
       </label>
 
       <div className="form-row">
-        <label>
-          <input type="checkbox" checked={isBundle} onChange={(e) => setIsBundle(e.target.checked)} />
+        <Checkbox checked={isBundle} onChange={(e) => setIsBundle(e.target.checked)}>
           בנדל חוצה-מחלקות (כמו "360 לעסקים")
-        </label>
+        </Checkbox>
         {!isBundle && (
           <label>
             מחלקה

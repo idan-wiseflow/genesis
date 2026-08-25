@@ -8,6 +8,7 @@ import { useClientsById } from '../hooks/useClientsById'
 import { useProfilesById } from '../hooks/useProfilesById'
 import ClientForm from '../components/ClientForm'
 import Modal from '../components/Modal'
+import Checkbox from '../components/Checkbox'
 
 const ROLE_COLUMNS = [
   { key: 'project_manager_id', label: 'מנהל פרויקט' },
@@ -91,14 +92,13 @@ export default function Clients() {
           {columnsOpen && (
             <div className="columns-menu" onMouseLeave={() => setColumnsOpen(false)}>
               {ALL_COLUMNS.map((c) => (
-                <label key={c.key} className="columns-menu-item">
-                  <input
-                    type="checkbox"
-                    checked={visibleColumns.includes(c.key)}
-                    onChange={() => toggleColumn(c.key)}
-                  />
+                <Checkbox
+                  key={c.key}
+                  checked={visibleColumns.includes(c.key)}
+                  onChange={() => toggleColumn(c.key)}
+                >
                   {c.label}
-                </label>
+                </Checkbox>
               ))}
             </div>
           )}

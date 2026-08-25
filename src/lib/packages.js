@@ -17,6 +17,11 @@ export async function createDepartment(name) {
   if (error) throw error
 }
 
+export async function renameDepartment(id, name) {
+  const { error } = await supabase.from('departments').update({ name }).eq('id', id)
+  if (error) throw error
+}
+
 // ===== package_definitions (גרסה נוכחית בלבד) =====
 
 export async function listCurrentPackages() {

@@ -10,6 +10,7 @@ import TaskForm from '../components/TaskForm'
 import Modal from '../components/Modal'
 
 const SHOW_ALL_KEY = 'genesis:tasks:show-all'
+const ASSIGNEE_FILTER_KEY = 'genesis:tasks:assignee-filter'
 
 export default function Tasks() {
   const { profile } = useAuth()
@@ -18,6 +19,10 @@ export default function Tasks() {
   const [tasks, setTasks] = useState(null)
   const [error, setError] = useState('')
   const [showAll, setShowAll] = useState(() => localStorage.getItem(SHOW_ALL_KEY) === '1')
+  // 'mine' | 'all' | <profile id>. ברירת מחדל "שלי" (עידן, 25.08.2026: "אני
+  // רוצה לראות את שלי בדיפולט ואז סינון לפי נציגים"), לא אכיפה, רק תצוגה -
+  // RLS כבר קובע מה כל דרג רואה בכלל, זה רק מסנן בתוך מה שכבר חזר.
+  const [assigneeFilter, setAssigneeFilter] = useState(() => localStorage.getItem(ASSIGNEE_FILTER_KEY) ?? 'mine')
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
@@ -34,13 +39,22 @@ export default function Tasks() {
     localStorage.setItem(SHOW_ALL_KEY, showAll ? '1' : '0')
   }, [showAll])
 
+  useEffect(() => {
+    localStorage.setItem(ASSIGNEE_FILTER_KEY, assigneeFilter)
+  }, [assigneeFilter])
+
   async function handleCreate(payload) {
     const created = await createTask(payload)
     setTasks((prev) => [...(prev ?? []), created])
     setCreating(false)
   }
 
-  const visibleTasks = tasks?.filter((t) => showAll || t.status !== 'פורסם')
+  const assigneeFiltered = tasks?.filter((t) => {
+    if (assigneeFilter === 'all') return true
+    if (assigneeFilter === 'mine') return t.assigned_to === profile?.id
+    return t.assigned_to === assigneeFilter
+  })
+  const visibleTasks = assigneeFiltered?.filter((t) => showAll || t.status !== 'פורסם')
   const grouped = visibleTasks ? groupByDateBucket(visibleTasks) : []
 
   return (
@@ -60,6 +74,15 @@ export default function Tasks() {
       </div>
 
       <div className="list-toolbar">
+        <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
+          <option value="mine">המשימות שלי</option>
+          <option value="all">כל הנציגים</option>
+          {profiles.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.full_name}
+            </option>
+          ))}
+        </select>
         <button
           type="button"
           className={'chip-toggle' + (showAll ? ' active' : '')}
