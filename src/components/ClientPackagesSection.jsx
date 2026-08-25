@@ -201,10 +201,6 @@ export default function ClientPackagesSection({ clientId, canEdit }) {
 
   return (
     <div>
-      <div className="section-head">
-        <h3>חבילות משויכות</h3>
-      </div>
-
       {error && <p className="form-error">{error}</p>}
 
       {clientPackages.map((cp) => (

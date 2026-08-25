@@ -48,6 +48,7 @@ export default function ClientDetail() {
   const [notFound, setNotFound] = useState(false)
   const [tasks, setTasks] = useState([])
   const [editingField, setEditingField] = useState(null)
+  const [detailTab, setDetailTab] = useState('packages')
 
   useEffect(() => {
     let active = true
@@ -263,25 +264,41 @@ export default function ClientDetail() {
         )}
 
         <div className="section">
-          <ClientPackagesSection clientId={clientId} canEdit={canEdit} />
-        </div>
-
-        <div className="section">
-          <div className="section-head">
-            <h3>משימות{tasks.length > 0 ? ` (${tasks.length})` : ''}</h3>
+          <div className="tab-switcher">
+            <button
+              type="button"
+              className={'tab' + (detailTab === 'packages' ? ' active' : '')}
+              onClick={() => setDetailTab('packages')}
+            >
+              חבילות משויכות
+            </button>
+            <button
+              type="button"
+              className={'tab' + (detailTab === 'tasks' ? ' active' : '')}
+              onClick={() => setDetailTab('tasks')}
+            >
+              משימות{tasks.length > 0 ? ` (${tasks.length})` : ''}
+            </button>
           </div>
-          {tasks.length === 0 && <div className="empty-state">אין משימות ללקוח הזה</div>}
-          {tasks.length > 0 && (
-            <div className="task-list">
-              {tasks.map((task) => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  showClient={false}
-                  assignee={task.assigned_to ? profilesById[task.assigned_to] : null}
-                />
-              ))}
-            </div>
+
+          {detailTab === 'packages' ? (
+            <ClientPackagesSection clientId={clientId} canEdit={canEdit} />
+          ) : (
+            <>
+              {tasks.length === 0 && <div className="empty-state">אין משימות ללקוח הזה</div>}
+              {tasks.length > 0 && (
+                <div className="task-list">
+                  {tasks.map((task) => (
+                    <TaskRow
+                      key={task.id}
+                      task={task}
+                      showClient={false}
+                      assignee={task.assigned_to ? profilesById[task.assigned_to] : null}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
