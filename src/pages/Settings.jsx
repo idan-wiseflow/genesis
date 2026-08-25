@@ -3,9 +3,10 @@ import { useAuth } from '../context/AuthContext'
 import { getStoredTheme, setTheme } from '../lib/theme'
 import { updateOwnProfile } from '../lib/queries'
 import { uploadAvatar } from '../lib/avatar'
-import { canCreateUsers } from '../lib/permissions'
+import { canCreateUsers, canManagePackages } from '../lib/permissions'
 import Avatar from '../components/Avatar'
 import UsersTab from '../components/UsersTab'
+import PackagesTab from '../components/PackagesTab'
 
 const THEME_OPTIONS = [
   { value: null, label: 'לפי המערכת' },
@@ -66,6 +67,7 @@ export default function Settings() {
   }
 
   const showUsersTab = canCreateUsers(profile)
+  const showPackagesTab = canManagePackages(profile)
 
   return (
     <section className="screen">
@@ -73,7 +75,9 @@ export default function Settings() {
         <div>
           <h1>הגדרות</h1>
           <div className="sub">
-            {tab === 'users' ? 'ניהול משתמשי המערכת' : 'מוצג רק לך, נשמר בדפדפן הזה'}
+            {tab === 'users' && 'ניהול משתמשי המערכת'}
+            {tab === 'packages' && 'קטלוג החבילות הגלובלי'}
+            {tab !== 'users' && tab !== 'packages' && 'מוצג רק לך, נשמר בדפדפן הזה'}
           </div>
         </div>
       </div>
@@ -88,6 +92,15 @@ export default function Settings() {
         {showUsersTab && (
           <button type="button" className={'tab' + (tab === 'users' ? ' active' : '')} onClick={() => setTab('users')}>
             משתמשים
+          </button>
+        )}
+        {showPackagesTab && (
+          <button
+            type="button"
+            className={'tab' + (tab === 'packages' ? ' active' : '')}
+            onClick={() => setTab('packages')}
+          >
+            חבילות
           </button>
         )}
       </div>
@@ -134,6 +147,7 @@ export default function Settings() {
       )}
 
       {tab === 'users' && showUsersTab && <UsersTab />}
+      {tab === 'packages' && showPackagesTab && <PackagesTab />}
     </section>
   )
 }

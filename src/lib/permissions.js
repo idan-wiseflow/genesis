@@ -57,3 +57,11 @@ export function canEditTask(profile, task, userId) {
 export function canCreateUsers(profile) {
   return isManagement(profile)
 }
+
+// מראה את package_definitions_write/package_task_templates_write/departments_write
+// ב-011: עריכת קטלוג חבילות היא הנהלה בלבד ("עריכת חבילות" מפורש כסעיף
+// הנהלה-בלבד ב-project-brief.md סעיף 3). שיוך חבילה קיימת ללקוח (client_packages)
+// פתוח יותר, הנהלה+מנהל_פרויקט, ראו canManageClients.
+export function canManagePackages(profile) {
+  return isManagement(profile)
+}

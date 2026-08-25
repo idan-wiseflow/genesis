@@ -9,6 +9,7 @@ import { useProfilesById } from '../hooks/useProfilesById'
 import TaskRow from '../components/TaskRow'
 import ClientForm from '../components/ClientForm'
 import Avatar from '../components/Avatar'
+import ClientPackagesSection from '../components/ClientPackagesSection'
 
 export default function ClientDetail() {
   const { clientId } = useParams()
@@ -135,6 +136,8 @@ export default function ClientDetail() {
                 </div>
               </div>
             )}
+
+            <ClientPackagesSection clientId={clientId} canEdit={canEdit} />
 
             <div className="section">
               <h3>משימות</h3>
