@@ -136,6 +136,13 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 26px;
+  /* עידן, 25.08.2026: "התפריט צד לא יהיה לפי האורך של העמוד, שתמיד יהיה 100%
+     מהגודל". sticky+height קבועים כדי שהתפריט לא יימתח לפי אורך .content
+     (ברירת המחדל של flex align-items:stretch) ולא ייגלל איתו בדפים ארוכים. */
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 .sidebar-brand {
   padding: 0 8px;
@@ -207,6 +214,13 @@ h3 {
 .sidebar-user:hover {
   color: var(--accent);
 }
+.sidebar-version {
+  text-align: center;
+  font-size: 10px;
+  color: var(--sidebar-text-dim);
+  opacity: 0.6;
+  padding-top: 6px;
+}
 
 .content {
   flex: 1;
@@ -240,6 +254,12 @@ h3 {
   font-size: 13px;
   color: var(--muted-fg);
   margin-top: 3px;
+}
+.page-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .detail-page {

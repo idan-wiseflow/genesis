@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { APP_VERSION } from '../lib/appVersion'
 import Logo from './Logo'
 import Avatar from './Avatar'
 
@@ -40,6 +41,7 @@ export default function Sidebar() {
           <Avatar name={profile?.full_name} avatarPath={profile?.avatar_url} />
           <span>{profile?.full_name ?? 'טוען...'}</span>
         </button>
+        <div className="sidebar-version">v{APP_VERSION}</div>
       </div>
     </nav>
   )

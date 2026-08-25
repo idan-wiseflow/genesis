@@ -29,6 +29,7 @@ export default function PackagesTab() {
   const [newDeptName, setNewDeptName] = useState('')
   const [editingStageId, setEditingStageId] = useState(null)
   const [newStageName, setNewStageName] = useState('')
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [error, setError] = useState('')
 
   async function refresh() {
@@ -110,65 +111,19 @@ export default function PackagesTab() {
     <div>
       <div className="page-head">
         <div className="sub">מבנה עבודה גלובלי: מחלקה → שלב → משימה → כמות ותדירות</div>
-        <button type="button" className="cta" onClick={() => setEditing('new')}>
-          חבילה חדשה
-        </button>
+        <div className="page-head-actions">
+          {canManage && (
+            <button type="button" className="btn-ghost" onClick={() => setSettingsOpen(true)}>
+              ⚙️ הגדרות
+            </button>
+          )}
+          <button type="button" className="cta" onClick={() => setEditing('new')}>
+            חבילה חדשה
+          </button>
+        </div>
       </div>
 
       {error && <p className="form-error">{error}</p>}
-
-      {canManage && (
-        <div className="tag-add-row">
-          <input
-            type="text"
-            placeholder="שם מחלקה חדשה"
-            value={newDeptName}
-            onChange={(e) => setNewDeptName(e.target.value)}
-          />
-          <button type="button" className="btn-ghost" onClick={handleAddDepartment}>
-            + מחלקה חדשה
-          </button>
-        </div>
-      )}
-
-      <div className="section">
-        <h3>שלבי עבודה</h3>
-        <div className="field-grid">
-          {workStages.map((s) =>
-            canManage && editingStageId === s.id ? (
-              <InlineEditor
-                key={s.id}
-                type="text"
-                value={s.name}
-                onSave={(v) => handleRenameWorkStage(s.id, v)}
-                onCancel={() => setEditingStageId(null)}
-              />
-            ) : (
-              <button
-                type="button"
-                key={s.id}
-                className={'field' + (canManage ? ' field-editable' : '')}
-                onClick={() => canManage && setEditingStageId(s.id)}
-              >
-                <div className="v">{s.name}</div>
-              </button>
-            )
-          )}
-        </div>
-        {canManage && (
-          <div className="tag-add-row">
-            <input
-              type="text"
-              placeholder="שלב עבודה חדש"
-              value={newStageName}
-              onChange={(e) => setNewStageName(e.target.value)}
-            />
-            <button type="button" className="btn-ghost" onClick={handleAddWorkStage}>
-              + שלב חדש
-            </button>
-          </div>
-        )}
-      </div>
 
       {bundles.length > 0 && (
         <div className="section">
@@ -186,21 +141,7 @@ export default function PackagesTab() {
 
       {byDepartment.map(({ department, packages: deptPackages }) => (
         <div className="section" key={department.id}>
-          {canManage && editingDeptId === department.id ? (
-            <InlineEditor
-              type="text"
-              value={department.name}
-              onSave={(v) => handleRenameDepartment(department.id, v)}
-              onCancel={() => setEditingDeptId(null)}
-            />
-          ) : (
-            <h3
-              className={canManage ? 'clickable' : undefined}
-              onClick={() => canManage && setEditingDeptId(department.id)}
-            >
-              {department.name}
-            </h3>
-          )}
+          <h3>{department.name}</h3>
           {deptPackages.length === 0 && <div className="empty-state">אין עדיין חבילות במחלקה הזו</div>}
           {deptPackages.length > 0 && (
             <div className="task-list">
@@ -228,6 +169,87 @@ export default function PackagesTab() {
             onSave={handleSave}
             onCancel={() => setEditing(null)}
           />
+        </Modal>
+      )}
+
+      {/* מחלקות ושלבי עבודה: עידן, 25.08.2026 - "אני רוצה שזה יהיה מוצג במקום
+          פחות בולט ורק להנהלה, שיהיה כפתור הגדרות ואז לחיצה עליו תפתח את זה".
+          לא יותר inline בעמוד הראשי, רק דרך המודל הזה. */}
+      {canManage && settingsOpen && (
+        <Modal title="הגדרות חבילות" onClose={() => setSettingsOpen(false)}>
+          <div className="section">
+            <h3>מחלקות</h3>
+            <div className="field-grid">
+              {departments.map((d) =>
+                editingDeptId === d.id ? (
+                  <InlineEditor
+                    key={d.id}
+                    type="text"
+                    value={d.name}
+                    onSave={(v) => handleRenameDepartment(d.id, v)}
+                    onCancel={() => setEditingDeptId(null)}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    key={d.id}
+                    className="field field-editable"
+                    onClick={() => setEditingDeptId(d.id)}
+                  >
+                    <div className="v">{d.name}</div>
+                  </button>
+                )
+              )}
+            </div>
+            <div className="tag-add-row">
+              <input
+                type="text"
+                placeholder="שם מחלקה חדשה"
+                value={newDeptName}
+                onChange={(e) => setNewDeptName(e.target.value)}
+              />
+              <button type="button" className="btn-ghost" onClick={handleAddDepartment}>
+                + מחלקה חדשה
+              </button>
+            </div>
+          </div>
+
+          <div className="section">
+            <h3>שלבי עבודה</h3>
+            <div className="field-grid">
+              {workStages.map((s) =>
+                editingStageId === s.id ? (
+                  <InlineEditor
+                    key={s.id}
+                    type="text"
+                    value={s.name}
+                    onSave={(v) => handleRenameWorkStage(s.id, v)}
+                    onCancel={() => setEditingStageId(null)}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    key={s.id}
+                    className="field field-editable"
+                    onClick={() => setEditingStageId(s.id)}
+                  >
+                    <div className="v">{s.name}</div>
+                  </button>
+                )
+              )}
+            </div>
+            <div className="tag-add-row">
+              <input
+                type="text"
+                placeholder="שלב עבודה חדש"
+                value={newStageName}
+                onChange={(e) => setNewStageName(e.target.value)}
+              />
+              <button type="button" className="btn-ghost" onClick={handleAddWorkStage}>
+                + שלב חדש
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>
