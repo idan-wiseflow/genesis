@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getClient, listClientTasks, updateClient } from '../lib/queries'
+import { getClient, listClientTasks, listClientFieldHistory, updateClient } from '../lib/queries'
 import { canEditProjectManager, canManageClients } from '../lib/permissions'
 import { listClientPackageHistory } from '../lib/packages'
 import { FREQUENCY_LABELS } from '../lib/packageMeta'
 import { formatCurrency, formatDate } from '../lib/format'
-import { CLIENT_ROLE_FIELDS } from '../lib/clientRoles'
+import { CLIENT_FIELD_LABELS, CLIENT_FINANCIAL_FIELDS, CLIENT_ROLE_FIELD_NAMES, CLIENT_ROLE_FIELDS } from '../lib/clientRoles'
 import { useProfilesById } from '../hooks/useProfilesById'
 import TaskRow from '../components/TaskRow'
 import Avatar from '../components/Avatar'
@@ -41,6 +41,15 @@ function EditableField({ label, display, value, type, options, editable, isEditi
   )
 }
 
+// ערך גולמי מ-client_field_history_view (016) -> טקסט קריא. שדות תפקיד הם
+// uuid, מיסוך כספי כבר קרה ב-view עצמו (null אם אין הרשאה), כאן רק עיצוב.
+function formatFieldHistoryValue(fieldName, rawValue, profilesById) {
+  if (rawValue === null || rawValue === undefined) return 'ריק'
+  if (CLIENT_ROLE_FIELD_NAMES.includes(fieldName)) return profilesById[rawValue]?.full_name ?? 'לא ידוע'
+  if (CLIENT_FINANCIAL_FIELDS.includes(fieldName)) return formatCurrency(Number(rawValue))
+  return rawValue
+}
+
 export default function ClientDetail() {
   const { clientId } = useParams()
   const { profile } = useAuth()
@@ -53,13 +62,40 @@ export default function ClientDetail() {
   const [editingField, setEditingField] = useState(null)
   const [detailTab, setDetailTab] = useState('packages')
 
+  // שני מקורות היסטוריה נפרדים (016 לשדות clients, 015 לשינויי חבילה),
+  // ממוזגים כאן ללשונית אחת משותפת לפי זמן. שני ה-view/table שהם קוראים מהם
+  // כבר ממסכים/מסננים בעצמם (financial masking, can_view_client), המיזוג כאן
+  // הוא רק תצוגה, לא שכבת הרשאה נוספת.
+  async function refreshHistory() {
+    const [fieldRows, packageRows] = await Promise.all([
+      listClientFieldHistory(clientId),
+      listClientPackageHistory(clientId),
+    ])
+    const merged = [
+      ...fieldRows.map((h) => ({
+        id: `field-${h.id}`,
+        changed_at: h.changed_at,
+        changed_by: h.changed_by,
+        summary: `${CLIENT_FIELD_LABELS[h.field_name] ?? h.field_name} · ${formatFieldHistoryValue(h.field_name, h.old_value, profilesById)} ← ${formatFieldHistoryValue(h.field_name, h.new_value, profilesById)}`,
+      })),
+      ...packageRows.map((h) => ({
+        id: `package-${h.id}`,
+        changed_at: h.changed_at,
+        changed_by: h.changed_by,
+        summary: `${h.client_packages?.package_definitions?.name ?? 'חבילה'} · ${h.package_task_templates?.task_name ?? 'משימה'} · ${
+          h.action === 'set' ? `${h.quantity} · ${FREQUENCY_LABELS[h.frequency]}` : 'ההתאמה הוסרה'
+        }`,
+      })),
+    ].sort((a, b) => new Date(b.changed_at) - new Date(a.changed_at))
+    setHistory(merged)
+  }
+
   useEffect(() => {
     let active = true
     getClient(clientId)
       .then((row) => active && setClient(row))
       .catch(() => active && setNotFound(true))
     listClientTasks(clientId).then((rows) => active && setTasks(rows))
-    listClientPackageHistory(clientId).then((rows) => active && setHistory(rows))
     return () => {
       active = false
     }
@@ -288,7 +324,7 @@ export default function ClientDetail() {
               className={'tab' + (detailTab === 'history' ? ' active' : '')}
               onClick={() => {
                 setDetailTab('history')
-                listClientPackageHistory(clientId).then(setHistory)
+                refreshHistory()
               }}
             >
               היסטוריה
@@ -319,13 +355,7 @@ export default function ClientDetail() {
             <div className="history-list">
               {history.map((h) => (
                 <div className="history-row" key={h.id}>
-                  <span className="meta-text">
-                    {h.client_packages?.package_definitions?.name ?? 'חבילה'}
-                    {' · '}
-                    {h.package_task_templates?.task_name ?? 'משימה'}
-                    {' · '}
-                    {h.action === 'set' ? `${h.quantity} · ${FREQUENCY_LABELS[h.frequency]}` : 'ההתאמה הוסרה'}
-                  </span>
+                  <span className="meta-text">{h.summary}</span>
                   <span className="meta-text">
                     {profilesById[h.changed_by]?.full_name ?? 'לא ידוע'} · {formatDate(h.changed_at)}
                   </span>

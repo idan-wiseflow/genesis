@@ -85,6 +85,18 @@ export async function updateClient(clientId, patch) {
   return getClient(clientId)
 }
 
+// לוג בלתי-ניתן-לזיוף (016): נכתב רק ע"י טריגר SECURITY DEFINER על clients,
+// קריאה בלבד דרך client_field_history_view (ממסכת שדות כספיים, כמו clients_view).
+export async function listClientFieldHistory(clientId) {
+  const { data, error } = await supabase
+    .from('client_field_history_view')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('changed_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
 // ===== tags =====
 
 export async function listTags() {

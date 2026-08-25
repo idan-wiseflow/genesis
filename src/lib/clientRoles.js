@@ -8,3 +8,20 @@ export const CLIENT_ROLE_FIELDS = [
   { field: 'seo_id', label: 'SEO' },
   { field: 'studio_id', label: 'סטודיו' },
 ]
+
+export const CLIENT_ROLE_FIELD_NAMES = CLIENT_ROLE_FIELDS.map((r) => r.field)
+
+// שדות ללשונית "היסטוריה" (016): תוויות לכל שדה clients שיכול להופיע בלוג
+// השינויים הגנרי, כולל שדות שאינם תפקידים. מקור יחיד, לא לשכפל.
+export const CLIENT_FIELD_LABELS = {
+  name: 'שם הלקוח',
+  ...Object.fromEntries(CLIENT_ROLE_FIELDS.map((r) => [r.field, r.label])),
+  retainer_amount: 'סכום ריטיינר',
+  media_amount: 'סכום מדיה',
+  website: 'אתר',
+  contact_email: 'אימייל ליצירת קשר',
+  contact_phone: 'טלפון',
+  drive_folder_url: 'תיקיית עבודה',
+}
+
+export const CLIENT_FINANCIAL_FIELDS = ['retainer_amount', 'media_amount']
