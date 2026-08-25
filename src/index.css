@@ -1193,6 +1193,19 @@ a.file-name:hover {
   cursor: pointer;
 }
 
+.side-head {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted-fg);
+  margin-bottom: 14px;
+}
+.side-divider {
+  margin: 6px 0 18px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-fg);
+  letter-spacing: 0.03em;
+}
 .side .field {
   padding-bottom: 16px;
   margin-bottom: 16px;
@@ -1325,25 +1338,234 @@ h1.clickable:hover {
 
 /* ===== פרטי לקוח: רשת שדות סטטית, בלי stepper ===== */
 
-.field-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
+/* ===== כרטיס לקוח: רשת רחבה (אופציה 2 מאושרת, 25.08.2026), .side sticky
+   כי עם "צוות מנהל"+"פרטים כספיים"+"פרטים כלליים" הסרגל מתארך ===== */
+
+.side {
+  align-self: start;
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
 }
-.field-grid .field {
-  border: none;
-  padding: 0;
-  margin: 0;
-}
-.field-grid .k {
-  font-size: 11.5px;
+.unassigned {
   color: var(--muted-fg);
-  margin-bottom: 6px;
+  font-weight: 500;
+  border: 1px dashed var(--border);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
 }
-.field-grid .v {
-  font-size: 13.5px;
-  font-weight: 600;
+.link-value {
+  color: var(--info);
+}
+.link-value .ext {
+  font-size: 11px;
+}
+
+/* ===== כרטיסי חבילה משויכת (ClientPackagesSection) ===== */
+
+.package-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.package-card:hover {
+  border-color: #d8d8dc;
+  box-shadow: 0 2px 4px rgba(9, 9, 11, 0.05), 0 10px 24px -10px rgba(9, 9, 11, 0.14);
+}
+.package-card-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #fffaf0, var(--card) 70%);
+  border-bottom: 1px solid var(--border);
+}
+.package-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.package-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.package-card-title h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+}
+.package-card-title .dept {
+  font-size: 11.5px;
+  color: var(--muted-fg);
+  margin-top: 2px;
+}
+.package-remove {
+  background: none;
+  border: none;
+  color: var(--muted-fg);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 6px;
+}
+.package-remove:hover {
+  color: var(--urgent);
+  background: var(--urgent-bg);
+}
+.package-tasks {
+  padding: 6px 10px;
+}
+.ptask-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 8px;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.15s;
+}
+.ptask-row:last-child {
+  border-bottom: none;
+}
+.ptask-row:hover {
+  background: var(--muted);
+}
+.ptask-row.overridden {
+  background: #fffaf0;
+}
+.ptask-name {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.override-badge {
+  animation: badgeIn 0.15s ease both;
+}
+@keyframes badgeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== סטפר כמות + תדירות, במקום קלט מספר גולמי ===== */
+
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--card);
+  flex-shrink: 0;
+}
+.qty-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: var(--muted);
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.12s, color 0.12s, transform 0.08s;
+}
+.qty-btn:hover {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.qty-btn:active {
+  transform: scale(0.9);
+}
+.qty-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.qty-value {
+  min-width: 22px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.freq-select {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--card);
+  color: var(--fg);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.freq-select:hover {
+  border-color: var(--muted-fg);
+}
+.reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--muted-fg);
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.12s, transform 0.2s;
+}
+.reset-btn:hover {
+  color: var(--urgent);
+  transform: rotate(-70deg);
+}
+.add-package-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px dashed var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: border-color 0.12s;
+}
+.add-package-row:hover,
+.add-package-row:focus-within {
+  border-color: var(--accent);
+}
+.add-package-row select {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--fg);
 }

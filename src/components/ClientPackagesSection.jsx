@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import {
   listClientPackages,
   listCurrentPackages,
+  listDepartments,
   assignPackageToClient,
   endClientPackage,
   listPackageTemplates,
@@ -11,10 +12,13 @@ import {
   removeTaskOverride,
 } from '../lib/packages'
 import { FREQUENCIES, FREQUENCY_LABELS } from '../lib/packageMeta'
+import { formatDate } from '../lib/format'
 
 // שורת משימה בתוך חבילה משויכת: כמות/תדירות מהתבנית הגלובלית, אלא אם יש
 // override פר-לקוח (client_package_task_overrides, 011). "שינויים קטנים
 // בלבד" (עידן, 25.08.2026): רק כמות/תדירות, לא רשימת משימות עצמאית.
+// סטפר +/- במקום קלט מספר גולמי (עידן, 25.08.2026: "אני לא רואה שיש לי שם
+// דרך לשנות את המספר בצורה נוחה").
 function TemplateRow({ template, override, canEdit, onSave, onReset }) {
   const [quantity, setQuantity] = useState(override?.quantity ?? template.quantity)
   const [frequency, setFrequency] = useState(override?.frequency ?? template.frequency)
@@ -29,26 +33,38 @@ function TemplateRow({ template, override, canEdit, onSave, onReset }) {
     await onSave(Number(nextQuantity), nextFrequency)
   }
 
+  function adjust(delta) {
+    const next = Math.max(1, Number(quantity) + delta)
+    setQuantity(next)
+    persist(next, frequency)
+  }
+
+  function changeFrequency(nextFrequency) {
+    setFrequency(nextFrequency)
+    persist(quantity, nextFrequency)
+  }
+
+  async function handleReset() {
+    setQuantity(template.quantity)
+    setFrequency(template.frequency)
+    await onReset()
+  }
+
   return (
-    <div className="file-row">
-      <span className="file-name">{template.task_name}</span>
+    <div className={'ptask-row' + (isOverridden ? ' overridden' : '')}>
+      <span className="ptask-name">{template.task_name}</span>
       {canEdit ? (
         <>
-          <input
-            type="number"
-            min="1"
-            className="package-template-qty"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            onBlur={() => persist(quantity, frequency)}
-          />
-          <select
-            value={frequency}
-            onChange={(e) => {
-              setFrequency(e.target.value)
-              persist(quantity, e.target.value)
-            }}
-          >
+          <div className="qty-stepper">
+            <button type="button" className="qty-btn" onClick={() => adjust(-1)} disabled={quantity <= 1}>
+              −
+            </button>
+            <span className="qty-value">{quantity}</span>
+            <button type="button" className="qty-btn" onClick={() => adjust(1)}>
+              +
+            </button>
+          </div>
+          <select className="freq-select" value={frequency} onChange={(e) => changeFrequency(e.target.value)}>
             {FREQUENCIES.map((f) => (
               <option key={f} value={f}>
                 {FREQUENCY_LABELS[f]}
@@ -61,12 +77,17 @@ function TemplateRow({ template, override, canEdit, onSave, onReset }) {
           {quantity} · {FREQUENCY_LABELS[frequency]}
         </span>
       )}
-      {isOverridden && <span className="badge badge-outline">מותאם</span>}
+      {isOverridden && <span className="badge badge-outline override-badge">מותאם</span>}
+      {canEdit && isOverridden && (
+        <button type="button" className="reset-btn" onClick={handleReset} title="איפוס לברירת המחדל">
+          ↺
+        </button>
+      )}
     </div>
   )
 }
 
-function ClientPackageCard({ clientPackage, canEdit, onEnded }) {
+function ClientPackageCard({ clientPackage, department, canEdit, onEnded }) {
   const { user } = useAuth()
   const [templates, setTemplates] = useState([])
   const [overrides, setOverrides] = useState([])
@@ -91,16 +112,24 @@ function ClientPackageCard({ clientPackage, canEdit, onEnded }) {
   }
 
   return (
-    <div className="section">
-      <div className="section-head">
-        <h3>{clientPackage.package_definitions.name}</h3>
+    <div className="package-card">
+      <div className="package-card-head">
+        <div className="package-card-title">
+          <span className="package-ic">{(department?.name ?? clientPackage.package_definitions.name)[0]}</span>
+          <div>
+            <h4>{clientPackage.package_definitions.name}</h4>
+            <div className="dept">
+              {department?.name ?? 'ללא מחלקה'} · פעיל מאז {formatDate(clientPackage.assigned_at)}
+            </div>
+          </div>
+        </div>
         {canEdit && (
-          <button type="button" className="section-edit-btn" onClick={handleEnd}>
+          <button type="button" className="package-remove" onClick={handleEnd}>
             הסרה
           </button>
         )}
       </div>
-      <div className="file-list">
+      <div className="package-tasks">
         {templates.map((t) => (
           <TemplateRow
             key={t.id}
@@ -128,13 +157,19 @@ export default function ClientPackagesSection({ clientId, canEdit }) {
   const { user } = useAuth()
   const [clientPackages, setClientPackages] = useState([])
   const [availablePackages, setAvailablePackages] = useState([])
+  const [departments, setDepartments] = useState([])
   const [addValue, setAddValue] = useState('')
   const [error, setError] = useState('')
 
   async function refresh() {
-    const [assigned, all] = await Promise.all([listClientPackages(clientId), listCurrentPackages()])
+    const [assigned, all, depts] = await Promise.all([
+      listClientPackages(clientId),
+      listCurrentPackages(),
+      listDepartments(),
+    ])
     setClientPackages(assigned)
     setAvailablePackages(all)
+    setDepartments(depts)
   }
 
   useEffect(() => {
@@ -156,19 +191,30 @@ export default function ClientPackagesSection({ clientId, canEdit }) {
   }
 
   const assignedIds = new Set(clientPackages.map((cp) => cp.package_definition_id))
+  const departmentsById = Object.fromEntries(departments.map((d) => [d.id, d]))
 
   return (
     <div>
+      <div className="section-head">
+        <h3>חבילות משויכות</h3>
+      </div>
+
       {error && <p className="form-error">{error}</p>}
 
       {clientPackages.map((cp) => (
-        <ClientPackageCard key={cp.id} clientPackage={cp} canEdit={canEdit} onEnded={refresh} />
+        <ClientPackageCard
+          key={cp.id}
+          clientPackage={cp}
+          department={departmentsById[cp.package_definitions.department_id]}
+          canEdit={canEdit}
+          onEnded={refresh}
+        />
       ))}
 
       {clientPackages.length === 0 && <div className="empty-state">אין ללקוח חבילות משויכות</div>}
 
       {canEdit && (
-        <div className="tag-add-row">
+        <div className="add-package-row">
           <select value={addValue} onChange={(e) => setAddValue(e.target.value)}>
             <option value="">בחר חבילה להוספה</option>
             {availablePackages
@@ -180,7 +226,7 @@ export default function ClientPackagesSection({ clientId, canEdit }) {
               ))}
           </select>
           <button type="button" className="btn-ghost" onClick={handleAdd}>
-            הוספה
+            + הוספה
           </button>
         </div>
       )}
