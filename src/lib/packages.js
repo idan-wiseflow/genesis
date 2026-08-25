@@ -22,6 +22,24 @@ export async function renameDepartment(id, name) {
   if (error) throw error
 }
 
+// ===== work_stages (014, טבלה דינמית במקום enum) =====
+
+export async function listWorkStages() {
+  const { data, error } = await supabase.from('work_stages').select('*').order('sort_order')
+  if (error) throw error
+  return data
+}
+
+export async function createWorkStage(name) {
+  const { error } = await supabase.from('work_stages').insert({ name })
+  if (error) throw error
+}
+
+export async function renameWorkStage(id, name) {
+  const { error } = await supabase.from('work_stages').update({ name }).eq('id', id)
+  if (error) throw error
+}
+
 // ===== package_definitions (גרסה נוכחית בלבד) =====
 
 export async function listCurrentPackages() {
@@ -60,7 +78,7 @@ export async function savePackageVersion({ groupId, name, departmentId, isBundle
   if (templates.length > 0) {
     const rows = templates.map((t, i) => ({
       package_definition_id: newId,
-      work_stage: t.work_stage,
+      work_stage_id: t.work_stage_id,
       task_name: t.task_name,
       description: t.description || null,
       quantity: t.quantity,
@@ -153,4 +171,16 @@ export async function setTaskOverride(clientPackageId, templateId, { quantity, f
 export async function removeTaskOverride(overrideId) {
   const { error } = await supabase.from('client_package_task_overrides').delete().eq('id', overrideId)
   if (error) throw error
+}
+
+// לוג בלתי-ניתן-לזיוף (015): נכתב רק ע"י טריגר SECURITY DEFINER על
+// client_package_task_overrides, לא ע"י הקוד הזה. קריאה בלבד.
+export async function listClientPackageOverrideHistory(clientPackageId) {
+  const { data, error } = await supabase
+    .from('client_package_task_override_history')
+    .select('*, package_task_templates(task_name)')
+    .eq('client_package_id', clientPackageId)
+    .order('changed_at', { ascending: false })
+  if (error) throw error
+  return data
 }

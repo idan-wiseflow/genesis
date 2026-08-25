@@ -3,11 +3,14 @@ import { useAuth } from '../context/AuthContext'
 import { canManagePackages } from '../lib/permissions'
 import {
   listDepartments,
+  listWorkStages,
   listCurrentPackages,
   listPackageTemplates,
   savePackageVersion,
   createDepartment,
   renameDepartment,
+  createWorkStage,
+  renameWorkStage,
 } from '../lib/packages'
 import Modal from './Modal'
 import PackageEditor from './PackageEditor'
@@ -18,16 +21,20 @@ export default function PackagesTab() {
   const canManage = canManagePackages(profile)
 
   const [departments, setDepartments] = useState([])
+  const [workStages, setWorkStages] = useState([])
   const [packages, setPackages] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null) // { definition, templates } | 'new' | null
   const [editingDeptId, setEditingDeptId] = useState(null)
   const [newDeptName, setNewDeptName] = useState('')
+  const [editingStageId, setEditingStageId] = useState(null)
+  const [newStageName, setNewStageName] = useState('')
   const [error, setError] = useState('')
 
   async function refresh() {
-    const [deps, pkgs] = await Promise.all([listDepartments(), listCurrentPackages()])
+    const [deps, stages, pkgs] = await Promise.all([listDepartments(), listWorkStages(), listCurrentPackages()])
     setDepartments(deps)
+    setWorkStages(stages)
     setPackages(pkgs)
   }
 
@@ -72,6 +79,25 @@ export default function PackagesTab() {
     }
   }
 
+  async function handleRenameWorkStage(id, name) {
+    if (!name.trim()) throw new Error('שם שלב חובה')
+    await renameWorkStage(id, name.trim())
+    await refresh()
+    setEditingStageId(null)
+  }
+
+  async function handleAddWorkStage() {
+    if (!newStageName.trim()) return
+    setError('')
+    try {
+      await createWorkStage(newStageName.trim())
+      setNewStageName('')
+      await refresh()
+    } catch (err) {
+      setError(err.message ?? 'משהו השתבש')
+    }
+  }
+
   const bundles = packages.filter((p) => p.is_bundle)
   const byDepartment = departments.map((d) => ({
     department: d,
@@ -104,6 +130,45 @@ export default function PackagesTab() {
           </button>
         </div>
       )}
+
+      <div className="section">
+        <h3>שלבי עבודה</h3>
+        <div className="field-grid">
+          {workStages.map((s) =>
+            canManage && editingStageId === s.id ? (
+              <InlineEditor
+                key={s.id}
+                type="text"
+                value={s.name}
+                onSave={(v) => handleRenameWorkStage(s.id, v)}
+                onCancel={() => setEditingStageId(null)}
+              />
+            ) : (
+              <button
+                type="button"
+                key={s.id}
+                className={'field' + (canManage ? ' field-editable' : '')}
+                onClick={() => canManage && setEditingStageId(s.id)}
+              >
+                <div className="v">{s.name}</div>
+              </button>
+            )
+          )}
+        </div>
+        {canManage && (
+          <div className="tag-add-row">
+            <input
+              type="text"
+              placeholder="שלב עבודה חדש"
+              value={newStageName}
+              onChange={(e) => setNewStageName(e.target.value)}
+            />
+            <button type="button" className="btn-ghost" onClick={handleAddWorkStage}>
+              + שלב חדש
+            </button>
+          </div>
+        )}
+      </div>
 
       {bundles.length > 0 && (
         <div className="section">
@@ -159,6 +224,7 @@ export default function PackagesTab() {
             initial={editing === 'new' ? null : editing.definition}
             initialTemplates={editing === 'new' ? [] : editing.templates}
             departments={departments}
+            workStages={workStages}
             onSave={handleSave}
             onCancel={() => setEditing(null)}
           />

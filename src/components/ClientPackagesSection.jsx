@@ -10,9 +10,11 @@ import {
   listClientPackageOverrides,
   setTaskOverride,
   removeTaskOverride,
+  listClientPackageOverrideHistory,
 } from '../lib/packages'
 import { FREQUENCIES, FREQUENCY_LABELS } from '../lib/packageMeta'
 import { formatDate } from '../lib/format'
+import { useProfilesById } from '../hooks/useProfilesById'
 
 // שורת משימה בתוך חבילה משויכת: כמות/תדירות מהתבנית הגלובלית, אלא אם יש
 // override פר-לקוח (client_package_task_overrides, 011). "שינויים קטנים
@@ -89,18 +91,27 @@ function TemplateRow({ template, override, canEdit, onSave, onReset }) {
 
 function ClientPackageCard({ clientPackage, department, canEdit, onEnded }) {
   const { user } = useAuth()
+  const { profilesById } = useProfilesById()
   const [templates, setTemplates] = useState([])
   const [overrides, setOverrides] = useState([])
+  const [history, setHistory] = useState([])
   const [editingPackage, setEditingPackage] = useState(false)
+  const [cardTab, setCardTab] = useState('tasks')
 
   async function refreshOverrides() {
     const rows = await listClientPackageOverrides(clientPackage.id)
     setOverrides(rows)
   }
 
+  async function refreshHistory() {
+    const rows = await listClientPackageOverrideHistory(clientPackage.id)
+    setHistory(rows)
+  }
+
   useEffect(() => {
     listPackageTemplates(clientPackage.package_definition_id).then(setTemplates)
     refreshOverrides()
+    refreshHistory()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientPackage.id, clientPackage.package_definition_id])
 
@@ -136,24 +147,63 @@ function ClientPackageCard({ clientPackage, department, canEdit, onEnded }) {
         )}
       </div>
       <div className="package-tasks">
-        {templates.map((t) => (
-          <TemplateRow
-            key={t.id}
-            template={t}
-            override={overridesByTemplate[t.id]}
-            canEdit={canEdit && editingPackage}
-            onSave={async (quantity, frequency) => {
-              await setTaskOverride(clientPackage.id, t.id, { quantity, frequency }, user.id)
-              await refreshOverrides()
-            }}
-            onReset={async () => {
-              const existing = overridesByTemplate[t.id]
-              if (existing) await removeTaskOverride(existing.id)
-              await refreshOverrides()
-            }}
-          />
-        ))}
-        {templates.length === 0 && <div className="empty-state">אין משימות בגרסת החבילה הזו</div>}
+        <div className="tab-switcher">
+          <button
+            type="button"
+            className={'tab' + (cardTab === 'tasks' ? ' active' : '')}
+            onClick={() => setCardTab('tasks')}
+          >
+            משימות
+          </button>
+          <button
+            type="button"
+            className={'tab' + (cardTab === 'history' ? ' active' : '')}
+            onClick={() => setCardTab('history')}
+          >
+            היסטוריה
+          </button>
+        </div>
+
+        {cardTab === 'tasks' ? (
+          <>
+            {templates.map((t) => (
+              <TemplateRow
+                key={t.id}
+                template={t}
+                override={overridesByTemplate[t.id]}
+                canEdit={canEdit && editingPackage}
+                onSave={async (quantity, frequency) => {
+                  await setTaskOverride(clientPackage.id, t.id, { quantity, frequency }, user.id)
+                  await refreshOverrides()
+                  await refreshHistory()
+                }}
+                onReset={async () => {
+                  const existing = overridesByTemplate[t.id]
+                  if (existing) await removeTaskOverride(existing.id)
+                  await refreshOverrides()
+                  await refreshHistory()
+                }}
+              />
+            ))}
+            {templates.length === 0 && <div className="empty-state">אין משימות בגרסת החבילה הזו</div>}
+          </>
+        ) : (
+          <div className="history-list">
+            {history.map((h) => (
+              <div className="history-row" key={h.id}>
+                <span className="meta-text">
+                  {h.package_task_templates?.task_name ?? 'משימה'}
+                  {' · '}
+                  {h.action === 'set' ? `${h.quantity} · ${FREQUENCY_LABELS[h.frequency]}` : 'הותאמה הוסרה'}
+                </span>
+                <span className="meta-text">
+                  {profilesById[h.changed_by]?.full_name ?? 'לא ידוע'} · {formatDate(h.changed_at)}
+                </span>
+              </div>
+            ))}
+            {history.length === 0 && <div className="empty-state">אין שינויים רשומים</div>}
+          </div>
+        )}
       </div>
     </div>
   )

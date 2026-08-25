@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { WORK_STAGES, FREQUENCIES, FREQUENCY_LABELS } from '../lib/packageMeta'
+import { FREQUENCIES, FREQUENCY_LABELS } from '../lib/packageMeta'
 import Checkbox from './Checkbox'
 
-function emptyRow() {
+function emptyRow(workStages) {
   return {
     key: crypto.randomUUID(),
-    work_stage: WORK_STAGES[0],
+    work_stage_id: workStages[0]?.id ?? '',
     task_name: '',
     description: '',
     quantity: 1,
@@ -16,14 +16,14 @@ function emptyRow() {
 // עריכה יוצרת תמיד גרסה חדשה (savePackageVersion → create_package_version RPC),
 // לא UPDATE. initial=null זו חבילה חדשה לגמרי, initial עם ערך זו גרסה חדשה
 // לחבילה קיימת (package_group_id נשמר, version מתקדם).
-export default function PackageEditor({ initial, initialTemplates, departments, onSave, onCancel }) {
+export default function PackageEditor({ initial, initialTemplates, departments, workStages, onSave, onCancel }) {
   const [name, setName] = useState(initial?.name ?? '')
   const [departmentId, setDepartmentId] = useState(initial?.department_id ?? '')
   const [isBundle, setIsBundle] = useState(initial?.is_bundle ?? false)
   const [templates, setTemplates] = useState(
     initialTemplates?.length
       ? initialTemplates.map((t) => ({ ...t, key: t.id ?? crypto.randomUUID() }))
-      : [emptyRow()]
+      : [emptyRow(workStages)]
   )
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -33,7 +33,7 @@ export default function PackageEditor({ initial, initialTemplates, departments, 
   }
 
   function addRow() {
-    setTemplates((prev) => [...prev, emptyRow()])
+    setTemplates((prev) => [...prev, emptyRow(workStages)])
   }
 
   function removeRow(key) {
@@ -60,7 +60,7 @@ export default function PackageEditor({ initial, initialTemplates, departments, 
         departmentId: isBundle ? null : departmentId,
         isBundle,
         templates: cleanTemplates.map((t) => ({
-          work_stage: t.work_stage,
+          work_stage_id: t.work_stage_id,
           task_name: t.task_name.trim(),
           description: t.description?.trim() || null,
           quantity: Number(t.quantity) || 1,
@@ -111,10 +111,13 @@ export default function PackageEditor({ initial, initialTemplates, departments, 
         <div className="package-templates">
           {templates.map((row) => (
             <div className="package-template-row" key={row.key}>
-              <select value={row.work_stage} onChange={(e) => updateRow(row.key, 'work_stage', e.target.value)}>
-                {WORK_STAGES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+              <select
+                value={row.work_stage_id}
+                onChange={(e) => updateRow(row.key, 'work_stage_id', e.target.value)}
+              >
+                {workStages.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
                   </option>
                 ))}
               </select>

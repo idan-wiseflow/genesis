@@ -466,7 +466,7 @@ export default function TaskDetail() {
                         {h.old_status ? `${h.old_status} ← ${h.new_status}` : `נוצרה ב"${h.new_status}"`}
                       </span>
                       <span className="meta-text">
-                        {profilesById[h.changed_by]?.full_name ?? '...'} · {formatDate(h.changed_at?.slice(0, 10))}
+                        {profilesById[h.changed_by]?.full_name ?? '...'} · {formatDate(h.changed_at)}
                       </span>
                     </div>
                   ))}
