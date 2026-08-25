@@ -1193,19 +1193,6 @@ a.file-name:hover {
   cursor: pointer;
 }
 
-.side-head {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted-fg);
-  margin-bottom: 14px;
-}
-.side-divider {
-  margin: 6px 0 18px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted-fg);
-  letter-spacing: 0.03em;
-}
 .side .field {
   padding-bottom: 16px;
   margin-bottom: 16px;
@@ -1336,18 +1323,53 @@ h1.clickable:hover {
   color: var(--fg);
 }
 
-/* ===== פרטי לקוח: רשת שדות סטטית, בלי stepper ===== */
+/* ===== כרטיס לקוח: סקשנים מלאי-רוחב במקום grid/side (עידן, 25.08.2026:
+   "יש מלא שטח מת בצד שמאל... צוות מנהל ופרטים כלליים תפרוס למעלה מעל
+   החבילה"). page רחב יותר מ-TaskDetail.wide הרגיל (980px), ראו client-detail
+   למטה. סדר הסקשנים: פרטים כלליים, צוות מנהל, פרטים כספיים, ואז חבילות/משימות. */
 
-/* ===== כרטיס לקוח: רשת רחבה (אופציה 2 מאושרת, 25.08.2026), .side sticky
-   כי עם "צוות מנהל"+"פרטים כספיים"+"פרטים כלליים" הסרגל מתארך ===== */
-
-.side {
-  align-self: start;
-  position: sticky;
-  top: 24px;
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
+.detail-page.wide.client-detail {
+  max-width: 1200px;
 }
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 2px;
+}
+.field-grid .field {
+  border: none;
+  padding: 10px 12px;
+  margin: 0;
+  border-radius: 10px;
+}
+.field-grid .field.field-editable {
+  cursor: pointer;
+  text-align: right;
+  background: none;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  transition: background-color 0.12s;
+}
+.field-grid .field.field-editable:hover {
+  background: var(--muted);
+}
+.field-grid .k {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted-fg);
+  margin-bottom: 6px;
+}
+.field-grid .v {
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .unassigned {
   color: var(--muted-fg);
   font-weight: 500;
@@ -1391,6 +1413,12 @@ h1.clickable:hover {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.package-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 .package-ic {
   width: 36px;

@@ -91,6 +91,7 @@ function ClientPackageCard({ clientPackage, department, canEdit, onEnded }) {
   const { user } = useAuth()
   const [templates, setTemplates] = useState([])
   const [overrides, setOverrides] = useState([])
+  const [editingPackage, setEditingPackage] = useState(false)
 
   async function refreshOverrides() {
     const rows = await listClientPackageOverrides(clientPackage.id)
@@ -124,9 +125,14 @@ function ClientPackageCard({ clientPackage, department, canEdit, onEnded }) {
           </div>
         </div>
         {canEdit && (
-          <button type="button" className="package-remove" onClick={handleEnd}>
-            הסרה
-          </button>
+          <div className="package-card-actions">
+            <button type="button" className="section-edit-btn" onClick={() => setEditingPackage((v) => !v)}>
+              {editingPackage ? 'סיום עריכה' : 'עריכה'}
+            </button>
+            <button type="button" className="package-remove" onClick={handleEnd}>
+              הסרה
+            </button>
+          </div>
         )}
       </div>
       <div className="package-tasks">
@@ -135,7 +141,7 @@ function ClientPackageCard({ clientPackage, department, canEdit, onEnded }) {
             key={t.id}
             template={t}
             override={overridesByTemplate[t.id]}
-            canEdit={canEdit}
+            canEdit={canEdit && editingPackage}
             onSave={async (quantity, frequency) => {
               await setTaskOverride(clientPackage.id, t.id, { quantity, frequency }, user.id)
               await refreshOverrides()

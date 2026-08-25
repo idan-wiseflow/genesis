@@ -11,8 +11,8 @@ import Avatar from '../components/Avatar'
 import InlineEditor from '../components/InlineEditor'
 import ClientPackagesSection from '../components/ClientPackagesSection'
 
-// שדה בסיידבר/רשת: תצוגה, או לחיצה כדי לעבור לעריכה במקום. אין כפתור "עריכה"
-// גלובלי, כל שדה עומד בפני עצמו. אותה תבנית בדיוק כמו EditableField ב-TaskDetail.jsx
+// שדה ברשת: תצוגה, או לחיצה כדי לעבור לעריכה במקום. אין כפתור "עריכה" גלובלי,
+// כל שדה עומד בפני עצמו. אותה תבנית בדיוק כמו EditableField ב-TaskDetail.jsx
 // (עידן, 24.08.2026: "לא צריך כפתור עריכה... יש לערוך אם לוחצים על שורה").
 function EditableField({ label, display, value, type, options, editable, isEditing, onEdit, onSave, onCancel }) {
   if (isEditing) {
@@ -99,7 +99,7 @@ export default function ClientDetail() {
 
   return (
     <section className="screen">
-      <div className="detail-page wide">
+      <div className="detail-page wide client-detail">
         <Link className="back-link" to="/clients">
           ← חזרה ללקוחות
         </Link>
@@ -119,96 +119,14 @@ export default function ClientDetail() {
           )}
         </div>
 
-        <div className="grid">
-          <div>
-            <div className="section">
-              <ClientPackagesSection clientId={clientId} canEdit={canEdit} />
-            </div>
+        {/* סדר הסקשנים לפי בקשת עידן (25.08.2026): פרטים כלליים, צוות מנהל,
+            פרטים כספיים, ואז חבילות ומשימות. */}
 
-            <div className="section">
-              <div className="section-head">
-                <h3>משימות{tasks.length > 0 ? ` (${tasks.length})` : ''}</h3>
-              </div>
-              {tasks.length === 0 && <div className="empty-state">אין משימות ללקוח הזה</div>}
-              {tasks.length > 0 && (
-                <div className="task-list">
-                  {tasks.map((task) => (
-                    <TaskRow
-                      key={task.id}
-                      task={task}
-                      showClient={false}
-                      assignee={task.assigned_to ? profilesById[task.assigned_to] : null}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+        <div className="section">
+          <div className="section-head">
+            <h3>פרטים כלליים</h3>
           </div>
-
-          <aside className="side">
-            <div className="side-head">צוות מנהל</div>
-            {CLIENT_ROLE_FIELDS.map(({ field, label }) => {
-              const isPM = field === 'project_manager_id'
-              const person = client[field] ? profilesById[client[field]] : null
-              return (
-                <EditableField
-                  key={field}
-                  label={label}
-                  display={
-                    person ? (
-                      <>
-                        <Avatar name={person.full_name} avatarPath={person.avatar_url} />
-                        {person.full_name}
-                      </>
-                    ) : (
-                      <span className="unassigned">לא משויך</span>
-                    )
-                  }
-                  value={client[field] ?? ''}
-                  type="select"
-                  options={roleOptions}
-                  editable={isPM ? canEdit && canEditPM : canEdit}
-                  isEditing={editingField === field}
-                  onEdit={() => setEditingField(field)}
-                  onSave={(v) => saveField(field, v)}
-                  onCancel={() => setEditingField(null)}
-                />
-              )
-            })}
-
-            {hasFinancialRow && (
-              <>
-                <div className="side-divider">פרטים כספיים</div>
-                {client.retainer_amount !== null && (
-                  <EditableField
-                    label="סכום ריטיינר"
-                    display={formatCurrency(client.retainer_amount)}
-                    value={client.retainer_amount ?? ''}
-                    type="text"
-                    editable={canEdit}
-                    isEditing={editingField === 'retainer_amount'}
-                    onEdit={() => setEditingField('retainer_amount')}
-                    onSave={(v) => saveField('retainer_amount', v)}
-                    onCancel={() => setEditingField(null)}
-                  />
-                )}
-                {client.media_amount !== null && (
-                  <EditableField
-                    label="סכום מדיה"
-                    display={formatCurrency(client.media_amount)}
-                    value={client.media_amount ?? ''}
-                    type="text"
-                    editable={canEdit}
-                    isEditing={editingField === 'media_amount'}
-                    onEdit={() => setEditingField('media_amount')}
-                    onSave={(v) => saveField('media_amount', v)}
-                    onCancel={() => setEditingField(null)}
-                  />
-                )}
-              </>
-            )}
-
-            <div className="side-divider">פרטים כלליים</div>
+          <div className="field-grid">
             <EditableField
               label="אתר"
               display={
@@ -269,7 +187,102 @@ export default function ClientDetail() {
               onSave={(v) => saveField('drive_folder_url', v)}
               onCancel={() => setEditingField(null)}
             />
-          </aside>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-head">
+            <h3>צוות מנהל</h3>
+          </div>
+          <div className="field-grid">
+            {CLIENT_ROLE_FIELDS.map(({ field, label }) => {
+              const isPM = field === 'project_manager_id'
+              const person = client[field] ? profilesById[client[field]] : null
+              return (
+                <EditableField
+                  key={field}
+                  label={label}
+                  display={
+                    person ? (
+                      <>
+                        <Avatar name={person.full_name} avatarPath={person.avatar_url} />
+                        {person.full_name}
+                      </>
+                    ) : (
+                      <span className="unassigned">לא משויך</span>
+                    )
+                  }
+                  value={client[field] ?? ''}
+                  type="select"
+                  options={roleOptions}
+                  editable={isPM ? canEdit && canEditPM : canEdit}
+                  isEditing={editingField === field}
+                  onEdit={() => setEditingField(field)}
+                  onSave={(v) => saveField(field, v)}
+                  onCancel={() => setEditingField(null)}
+                />
+              )
+            })}
+          </div>
+        </div>
+
+        {hasFinancialRow && (
+          <div className="section">
+            <div className="section-head">
+              <h3>פרטים כספיים</h3>
+            </div>
+            <div className="field-grid">
+              {client.retainer_amount !== null && (
+                <EditableField
+                  label="סכום ריטיינר"
+                  display={formatCurrency(client.retainer_amount)}
+                  value={client.retainer_amount ?? ''}
+                  type="text"
+                  editable={canEdit}
+                  isEditing={editingField === 'retainer_amount'}
+                  onEdit={() => setEditingField('retainer_amount')}
+                  onSave={(v) => saveField('retainer_amount', v)}
+                  onCancel={() => setEditingField(null)}
+                />
+              )}
+              {client.media_amount !== null && (
+                <EditableField
+                  label="סכום מדיה"
+                  display={formatCurrency(client.media_amount)}
+                  value={client.media_amount ?? ''}
+                  type="text"
+                  editable={canEdit}
+                  isEditing={editingField === 'media_amount'}
+                  onEdit={() => setEditingField('media_amount')}
+                  onSave={(v) => saveField('media_amount', v)}
+                  onCancel={() => setEditingField(null)}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="section">
+          <ClientPackagesSection clientId={clientId} canEdit={canEdit} />
+        </div>
+
+        <div className="section">
+          <div className="section-head">
+            <h3>משימות{tasks.length > 0 ? ` (${tasks.length})` : ''}</h3>
+          </div>
+          {tasks.length === 0 && <div className="empty-state">אין משימות ללקוח הזה</div>}
+          {tasks.length > 0 && (
+            <div className="task-list">
+              {tasks.map((task) => (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  showClient={false}
+                  assignee={task.assigned_to ? profilesById[task.assigned_to] : null}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
