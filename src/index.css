@@ -217,7 +217,7 @@ h3 {
 .sidebar-version {
   text-align: center;
   font-size: 10px;
-  color: var(--sidebar-text);
+  color: #fbfcff;
   opacity: 0.55;
   padding-top: 6px;
 }
