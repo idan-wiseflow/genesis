@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   addTaskComment,
@@ -14,10 +14,11 @@ import {
   listTaskStatusHistory,
   listTaskTagIds,
   listTags,
+  softDeleteTask,
   updateTask,
 } from '../lib/queries'
 import { deleteTaskFileObject, getTaskFileSignedUrl, uploadTaskFile } from '../lib/taskFiles'
-import { canCreateTags, canEditTask } from '../lib/permissions'
+import { canCreateTags, canDeleteRecords, canEditTask } from '../lib/permissions'
 import {
   describeTaskError,
   nextStatus,
@@ -130,6 +131,7 @@ function FileRow({ file, canDelete, onDeleted }) {
 
 export default function TaskDetail() {
   const { taskId } = useParams()
+  const navigate = useNavigate()
   const { profile, user } = useAuth()
   const { clients, clientsById } = useClientsById()
   const { profiles, profilesById } = useProfilesById()
@@ -191,6 +193,7 @@ export default function TaskDetail() {
   }
 
   const canEdit = canEditTask(profile, task, user?.id)
+  const canDelete = canDeleteRecords(profile)
   const clientName = task.client_id ? clientsById[task.client_id]?.name : null
   const assigneeName = task.assigned_to ? profilesById[task.assigned_to]?.full_name : null
   const currentPos = STATUS_ORDER.indexOf(task.status)
@@ -222,6 +225,13 @@ export default function TaskDetail() {
     } catch (err) {
       throw new Error(describeTaskError(err))
     }
+  }
+
+  // מחיקה רכה (018): deleted_at, לא DELETE פיזי. היסטוריית הסטטוס נשארת שלמה.
+  async function handleDelete() {
+    if (!window.confirm(`למחוק את המשימה "${task.title}"? היא לא תופיע יותר ברשימות.`)) return
+    await softDeleteTask(taskId)
+    navigate('/tasks')
   }
 
   async function handleAddComment(e) {
@@ -322,6 +332,11 @@ export default function TaskDetail() {
             >
               {task.title}
             </h1>
+          )}
+          {canDelete && (
+            <button type="button" className="package-remove" onClick={handleDelete}>
+              מחיקת משימה
+            </button>
           )}
         </div>
 

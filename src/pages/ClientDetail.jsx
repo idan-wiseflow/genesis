@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getClient, listClientTasks, listClientFieldHistory, updateClient } from '../lib/queries'
-import { canEditProjectManager, canManageClients } from '../lib/permissions'
+import { getClient, listClientTasks, listClientFieldHistory, updateClient, softDeleteClient } from '../lib/queries'
+import { canDeleteRecords, canEditProjectManager, canManageClients } from '../lib/permissions'
 import { listClientPackageHistory } from '../lib/packages'
 import { FREQUENCY_LABELS } from '../lib/packageMeta'
 import { formatCurrency, formatDate } from '../lib/format'
@@ -52,6 +52,7 @@ function formatFieldHistoryValue(fieldName, rawValue, profilesById) {
 
 export default function ClientDetail() {
   const { clientId } = useParams()
+  const navigate = useNavigate()
   const { profile } = useAuth()
   const { profiles, profilesById } = useProfilesById()
 
@@ -126,6 +127,7 @@ export default function ClientDetail() {
 
   const canEdit = canManageClients(profile)
   const canEditPM = canEditProjectManager(profile)
+  const canDelete = canDeleteRecords(profile)
   const hasFinancialRow = client.retainer_amount !== null || client.media_amount !== null
 
   async function saveField(field, rawValue) {
@@ -134,6 +136,14 @@ export default function ClientDetail() {
     const updated = await updateClient(clientId, { [field]: value })
     setClient(updated)
     setEditingField(null)
+  }
+
+  // מחיקה רכה (018): deleted_at, לא DELETE פיזי. ההיסטוריה (חבילות+שדות)
+  // נשארת שלמה, רק לא נגישה יותר כי הלקוח עצמו לא נגיש.
+  async function handleDelete() {
+    if (!window.confirm(`למחוק את "${client.name}"? הלקוח לא יופיע יותר ברשימות, ההיסטוריה נשמרת.`)) return
+    await softDeleteClient(clientId)
+    navigate('/clients')
   }
 
   const roleOptions = [{ value: '', label: 'לא משויך' }, ...profiles.map((p) => ({ value: p.id, label: p.full_name }))]
@@ -157,6 +167,11 @@ export default function ClientDetail() {
             <h1 className={canEdit ? 'clickable' : undefined} onClick={() => canEdit && setEditingField('name')}>
               {client.name}
             </h1>
+          )}
+          {canDelete && (
+            <button type="button" className="package-remove" onClick={handleDelete}>
+              מחיקת לקוח
+            </button>
           )}
         </div>
 

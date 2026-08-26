@@ -85,6 +85,13 @@ export async function updateClient(clientId, patch) {
   return getClient(clientId)
 }
 
+// מחיקה רכה בלבד (018), אין DELETE פיזי. הטריגר guard_soft_delete בשרת
+// נועל את זה להנהלה בלבד, בלי קשר להרשאת ה-UPDATE הכללית על clients.
+export async function softDeleteClient(clientId) {
+  const { error } = await supabase.from('clients').update({ deleted_at: new Date().toISOString() }).eq('id', clientId)
+  if (error) throw error
+}
+
 // לוג בלתי-ניתן-לזיוף (016): נכתב רק ע"י טריגר SECURITY DEFINER על clients,
 // קריאה בלבד דרך client_field_history_view (ממסכת שדות כספיים, כמו clients_view).
 export async function listClientFieldHistory(clientId) {
@@ -117,10 +124,14 @@ export async function createTag(name, createdBy) {
 
 // ===== tasks =====
 
+// כל שאילתת קריאה על tasks מסננת deleted_at is null (018, מחיקה רכה) -
+// משימה שנמחקה לא אמורה להופיע בשום רשימה, גם לא בברירת מחדל.
+
 export async function listTasks() {
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
+    .is('deleted_at', null)
     .order('due_date', { ascending: true, nullsFirst: false })
   if (error) throw error
   return data
@@ -132,6 +143,7 @@ export async function listMyOpenTasks(userId) {
     .select('*')
     .eq('assigned_to', userId)
     .neq('status', 'פורסם')
+    .is('deleted_at', null)
     .order('due_date', { ascending: true, nullsFirst: false })
   if (error) throw error
   return data
@@ -142,13 +154,14 @@ export async function listClientTasks(clientId) {
     .from('tasks')
     .select('*')
     .eq('client_id', clientId)
+    .is('deleted_at', null)
     .order('due_date', { ascending: true, nullsFirst: false })
   if (error) throw error
   return data
 }
 
 export async function getTask(taskId) {
-  const { data, error } = await supabase.from('tasks').select('*').eq('id', taskId).single()
+  const { data, error } = await supabase.from('tasks').select('*').eq('id', taskId).is('deleted_at', null).single()
   if (error) throw error
   return data
 }
@@ -170,6 +183,12 @@ export async function updateTask(taskId, patch) {
   const { error } = await supabase.from('tasks').update(patch).eq('id', taskId)
   if (error) throw error
   return getTask(taskId)
+}
+
+// מחיקה רכה בלבד (018), אין DELETE פיזי. אותו guard_soft_delete כמו clients.
+export async function softDeleteTask(taskId) {
+  const { error } = await supabase.from('tasks').update({ deleted_at: new Date().toISOString() }).eq('id', taskId)
+  if (error) throw error
 }
 
 // ===== task_tags =====

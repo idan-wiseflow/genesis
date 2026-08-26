@@ -65,3 +65,10 @@ export function canCreateUsers(profile) {
 export function canManagePackages(profile) {
   return isManagement(profile)
 }
+
+// מראה את guard_soft_delete ב-018: מחיקה רכה (deleted_at) נעולה להנהלה
+// בלבד, אותו scope שהיה ל-DELETE הפיזי שבוטל, גם אם ה-UPDATE הכללי פתוח
+// יותר (הנהלה+מנהל_פרויקט).
+export function canDeleteRecords(profile) {
+  return isManagement(profile)
+}
