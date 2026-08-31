@@ -238,6 +238,34 @@ export async function deleteTaskFile(fileId) {
   if (error) throw error
 }
 
+// ===== client_files (019) =====
+// אותו דפוס בדיוק כמו task_files למעלה, גישה פתוחה כמו can_view_client
+// (לא הנהלה בלבד): דנה ביקשה במפורש שהצוות עצמו יעלה קבצים כלליים ללקוח.
+
+export async function listClientFiles(clientId) {
+  const { data, error } = await supabase
+    .from('client_files')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return data
+}
+
+export async function addClientFile(clientId, userId, path, fileName) {
+  const id = crypto.randomUUID()
+  const { error } = await supabase
+    .from('client_files')
+    .insert({ id, client_id: clientId, file_url: path, file_name: fileName, uploaded_by: userId })
+  if (error) throw error
+  return id
+}
+
+export async function deleteClientFile(fileId) {
+  const { error } = await supabase.from('client_files').delete().eq('id', fileId)
+  if (error) throw error
+}
+
 // ===== task_comments =====
 
 export async function listTaskComments(taskId) {

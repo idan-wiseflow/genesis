@@ -12,6 +12,7 @@ import TaskRow from '../components/TaskRow'
 import Avatar from '../components/Avatar'
 import InlineEditor from '../components/InlineEditor'
 import ClientPackagesSection from '../components/ClientPackagesSection'
+import ClientFilesSection from '../components/ClientFilesSection'
 
 // שדה ברשת: תצוגה, או לחיצה כדי לעבור לעריכה במקום. אין כפתור "עריכה" גלובלי,
 // כל שדה עומד בפני עצמו. אותה תבנית בדיוק כמו EditableField ב-TaskDetail.jsx
@@ -336,6 +337,13 @@ export default function ClientDetail() {
             </button>
             <button
               type="button"
+              className={'tab' + (detailTab === 'files' ? ' active' : '')}
+              onClick={() => setDetailTab('files')}
+            >
+              קבצים
+            </button>
+            <button
+              type="button"
               className={'tab' + (detailTab === 'history' ? ' active' : '')}
               onClick={() => {
                 setDetailTab('history')
@@ -347,6 +355,8 @@ export default function ClientDetail() {
           </div>
 
           {detailTab === 'packages' && <ClientPackagesSection clientId={clientId} canEdit={canEdit} />}
+
+          {detailTab === 'files' && <ClientFilesSection clientId={clientId} />}
 
           {detailTab === 'tasks' && (
             <>

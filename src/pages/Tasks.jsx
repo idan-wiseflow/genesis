@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { createTask, listTasks } from '../lib/queries'
-import { canCreateTasks } from '../lib/permissions'
+import { canCreateTasks, isManagement } from '../lib/permissions'
 import { groupByDateBucket } from '../lib/dateBuckets'
 import { useClientsById } from '../hooks/useClientsById'
 import { useProfilesById } from '../hooks/useProfilesById'
@@ -49,6 +49,11 @@ export default function Tasks() {
     setCreating(false)
   }
 
+  // ארכיון ("הצג הכל", חושף status='פורסם') חשוף רק להנהלה (020, project-brief.md:
+  // "ארכיון מלא של משימות שבוצעו... חשוף רק להנהלה, לא לעובד רגיל"). אכיפה
+  // אמיתית ב-RLS (policy restrictive), זה רק מסתיר את הכפתור למי שלא יעזור לו.
+  const canSeeArchive = isManagement(profile)
+
   const assigneeFiltered = tasks?.filter((t) => {
     if (assigneeFilter === 'all') return true
     if (assigneeFilter === 'mine') return t.assigned_to === profile?.id
@@ -83,13 +88,15 @@ export default function Tasks() {
             </option>
           ))}
         </select>
-        <button
-          type="button"
-          className={'chip-toggle' + (showAll ? ' active' : '')}
-          onClick={() => setShowAll((v) => !v)}
-        >
-          {showAll ? 'הצג רק פעילות' : 'הצג הכל'}
-        </button>
+        {canSeeArchive && (
+          <button
+            type="button"
+            className={'chip-toggle' + (showAll ? ' active' : '')}
+            onClick={() => setShowAll((v) => !v)}
+          >
+            {showAll ? 'הצג רק פעילות' : 'הצג הכל'}
+          </button>
+        )}
       </div>
 
       {error && <p className="form-error">{error}</p>}
